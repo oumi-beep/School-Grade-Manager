@@ -23,10 +23,9 @@ const AppRouter = () => {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/Login" element={<Login />} />
         {/* Routes imbriquées sous le composant App */}
         <Route path="/Dashboard" element={<App />}>
-
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/Dashboard/team" element={<Team />} />
           <Route path="/Dashboard/contacts" element={<Contacts />} />

@@ -1,11 +1,12 @@
-body, html {
+.Login_fullbackground body,
+.Login_fullbackground html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
 }
 
-div {
+.Login_fullbackground div {
   width: 100%;
   height: 100%;
   display: flex;
@@ -22,13 +23,16 @@ div {
 
 .Login2div {
   display: flex;
-  justify-content: space-between; /* Ensure space between the containers */
+  justify-content: space-between;
+  /* Ensure space between the containers */
   align-items: center;
   background-color: #2A2637;
   padding: 15px;
   height: 80%;
-  width: 75%; /* Or you can use 100% if you want it to take full width */
-  max-width: 1200px; /* Add a max-width if you want to limit it */
+  width: 75%;
+  /* Or you can use 100% if you want it to take full width */
+  max-width: 1200px;
+  /* Add a max-width if you want to limit it */
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
@@ -78,7 +82,7 @@ select {
   width: 92%;
   background-color: transparent;
   padding: 12px;
-  color: white;  
+  color: white;
   border: 1px 4px solid #ccc;
   border-radius: 10px;
   box-shadow: inset 0 2px 4px #2A2637;

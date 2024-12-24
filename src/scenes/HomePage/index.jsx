@@ -14,7 +14,7 @@ const HomePage = () => {
     };
 
     const handleLoginClick = () => {
-        navigate("/login");
+        navigate("/Login");
     };
 
     return (
