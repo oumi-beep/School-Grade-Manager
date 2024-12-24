@@ -39,9 +39,7 @@ const HomePage = () => {
           </aside>
 
           <div className="button">
-            <a href="#" onClick={handleLoginClick}>
-              Login
-            </a>
+            <a href="#" onClick={handleLoginClick}> Login </a>
           </div>
         </article>
       </header>
@@ -86,6 +84,7 @@ const HomePage = () => {
       </footer>
     </div>
   );
+
 };
 
 export default HomePage;
