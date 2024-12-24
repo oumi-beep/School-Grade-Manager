@@ -50,28 +50,28 @@ const HomePage = () => {
                 <section className="hero">
                     <div className="hero-content">
                         <h1>Welcome to School</h1>
-                        <p>Your journey to knowledge and adventure starts here.</p>
-                        <button onClick={() => navigate("/explore")}>Explore More</button>
+                        <p >Your journey to knowledge and adventure starts here.</p>
+                        <button >View More</button>
                     </div>
                 </section>
 
                 <section className="features">
                     <h2>What's Happening</h2>
                     <div className="feature-cards">
-                        <div className="card">
-                            <h3>Upcoming Events</h3>
-                            <p>Stay updated with the latest school events and activities.</p>
-                            <button>View Events</button>
+                        <div className="cardd">
+                            <h3 className="H3HomePage">Upcoming Events</h3>
+                            <p className="buttonHomePage">Stay updated with the latest school events and activities.</p>
+                            <button className="buttonHomePage">View Events</button>
                         </div>
-                        <div className="card">
-                            <h3>Join a Club</h3>
-                            <p>Discover clubs that match your interests and passions.</p>
-                            <button>Explore Clubs</button>
+                        <div className="cardd">
+                            <h3 className="H3HomePage">Join a Club</h3>
+                            <p className="buttonHomePage">Discover clubs that match your interests and passions.</p>
+                            <button className="buttonHomePage">Explore Clubs</button>
                         </div>
-                        <div className="card">
-                            <h3>Student Support</h3>
-                            <p>Get answers to your questions and access helpful resources.</p>
-                            <button>Learn More</button>
+                        <div className="cardd">
+                            <h3 className="H3HomePage">Student Support</h3>
+                            <p className="buttonHomePage">Get answers to your questions and access helpful resources.</p>
+                            <button className="buttonHomePage">Learn More</button>
                         </div>
                     </div>
                 </section>
