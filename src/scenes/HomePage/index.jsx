@@ -22,7 +22,7 @@ const HomePage = () => {
             <header>
                 <div className="logo">
                     <img src={loginImage} alt="Logo" />
-                    <span className="School">School</span>
+                    <span className="School">Ensa Kh</span>
                 </div>
 
                 <nav className="nav-links">
