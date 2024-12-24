@@ -59,7 +59,7 @@ const HomePage = () => {
             <div className="card">
               <h3>Upcoming Events</h3>
               <p>Stay updated with the latest school events and activities.</p>
-              <button>View Events</button>
+              <button className="buttonHomePage">View Events</button>
             </div>
             <div className="card">
               <h3>Join a Club</h3>

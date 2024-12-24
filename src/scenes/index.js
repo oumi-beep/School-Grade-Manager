@@ -14,6 +14,7 @@ import FAQ from "./faq";
 import Geography from "./geography";
 import HomePage from "./HomePage";
 import Login from "./Login"
+
 export {
   Navbar,
   SideBar,
