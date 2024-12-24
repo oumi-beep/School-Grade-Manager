@@ -43,8 +43,8 @@ header {
   height: 50px;
   border-radius: 50%;
 }
-.logo span {
-  margin-top: -55px;
+.logo span .School {
+  color: black;
   margin-left: 60px;
 }
 .button {
