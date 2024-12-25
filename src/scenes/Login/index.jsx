@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
 import '../../assets/Login.css';
+import { useNavigate}  from "react-router-dom";
 import loginImage from "../../assets/images/login.jpg";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
+  const navigate = useNavigate(); // Correct useNavigate
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+
     // Basic field validation
     if (!email || !password) {
       setErrorMessage("Please fill out all fields.");
@@ -25,21 +26,18 @@ const Login = () => {
     
       if (response.status === 200) {
         alert("Login successful!");
-        console.log("Token:", response.data.token);
-        localStorage.setItem("authToken", response.data.token);
+        navigate("/Dashboard");
       }
+
     } catch (error) {
-      console.error("Login error:", error);  // Log the full error for debugging
-      
+      console.error("Login error:", error);
       if (error.response) {
-        // If the error contains a response from the backend
         if (error.response.status === 401) {
           setErrorMessage("Invalid email or password.");
         } else {
           setErrorMessage("An error occurred. Please try again.");
         }
       } else if (error.request) {
-        // If the request was made, but no response was received
         setErrorMessage("No response from the server. Please check your connection.");
       } else {
         // General error (e.g., issue with setting up the request)
@@ -47,7 +45,6 @@ const Login = () => {
       }
     }
   };    
-  
 
   return (
     <div className="Login_fullbackground">
@@ -88,7 +85,7 @@ const Login = () => {
               <a href="/forgot-password">Forgot Password?</a>
             </div>
 
-            <button type="submit" onClick={handleLogin} className="login-button">
+            <button type="submit" className="login-button">
               Login
             </button>
           </form>
