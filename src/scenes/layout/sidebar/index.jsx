@@ -18,8 +18,8 @@ import {
   TimelineOutlined,
   WavesOutlined,
 } from "@mui/icons-material";
-import avatar from "../../../assets/images/login.jpg";
-import logo from "../../../assets/images/login.jpg";
+import avatar from "../../../assets/images/avatar.png";
+import logo from "../../../assets/images/logo.png";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
 
@@ -98,7 +98,7 @@ const SideBar = () => {
         >
           <Avatar
             alt="avatar"
-            src={avatar}
+            src={logo}
             sx={{ width: "100px", height: "100px" }}
           />
           <Box sx={{ textAlign: "center" }}>
@@ -110,7 +110,7 @@ const SideBar = () => {
               fontWeight="500"
               color="rgb(76, 67, 174)"
             >
-              Ensa khouribga
+              VP Fancy Admin
             </Typography>
           </Box>
         </Box>
