@@ -1,9 +1,10 @@
 import React, { createContext, useState } from "react";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
-import { Navbar, SideBar } from "./scenes";
+import { Navbar, SideBar, AppHeader } from "./scenes";
 import { Outlet } from "react-router-dom";
 import './indexx.css';
+
 export const ToggledContext = createContext(null);
 
 function App() {
@@ -12,10 +13,13 @@ function App() {
   const values = { toggled, setToggled };
 
   return (
+
     <ColorModeContext.Provider value={colorMode}>
+
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <ToggledContext.Provider value={values}>
+
           <Box sx={{ display: "flex", height: "100vh", maxWidth: "100%" }}>
             <SideBar />
             <Box
@@ -27,6 +31,7 @@ function App() {
                 maxWidth: "100%",
               }}
             >
+              <AppHeader />
               <Navbar />
               <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                 <Outlet />

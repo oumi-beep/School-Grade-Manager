@@ -14,6 +14,7 @@ import FAQ from "./faq";
 import Geography from "./geography";
 import HomePage from "./HomePage";
 import Login from "./Login"
+import AppHeader from "./AppHeader";
 
 export {
   Navbar,
@@ -32,4 +33,5 @@ export {
   Geography,
   HomePage,
   Login,
+  AppHeader,
 }

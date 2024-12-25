@@ -18,8 +18,8 @@ import {
   TimelineOutlined,
   WavesOutlined,
 } from "@mui/icons-material";
-import avatar from "../../../assets/images/avatar.png";
-import logo from "../../../assets/images/logo.png";
+import avatar from "../../../assets/images/login.jpg";
+import logo from "../../../assets/images/login.jpg";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
 
@@ -30,7 +30,7 @@ const SideBar = () => {
   const colors = tokens(theme.palette.mode);
   return (
     <Sidebar
-      backgroundColor={colors.primary[400]}
+      backgroundColor="#98acc1"
       rootStyles={{
         border: 0,
         height: "100%",
@@ -74,9 +74,9 @@ const SideBar = () => {
                   variant="h4"
                   fontWeight="bold"
                   textTransform="capitalize"
-                  color={colors.greenAccent[500]}
+                  color="rgb(76, 67, 174)"
                 >
-                  Argon
+                  School
                 </Typography>
               </Box>
             )}
@@ -103,14 +103,14 @@ const SideBar = () => {
           />
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h3" fontWeight="bold" color={colors.gray[100]}>
-              Tony Stark
+              Admin
             </Typography>
             <Typography
               variant="h6"
               fontWeight="500"
-              color={colors.greenAccent[500]}
+              color="rgb(76, 67, 174)"
             >
-              VP Fancy Admin
+              Ensa khouribga
             </Typography>
           </Box>
         </Box>
@@ -121,10 +121,11 @@ const SideBar = () => {
           menuItemStyles={{
             button: {
               ":hover": {
-                color: "#868dfb",
+                color: "rgb(76, 67, 174)",
                 background: "transparent",
                 transition: ".4s ease",
               },
+
             },
           }}
         >
@@ -140,13 +141,13 @@ const SideBar = () => {
           color={colors.gray[300]}
           sx={{ m: "15px 0 5px 20px" }}
         >
-          {!collapsed ? "Data" : " "}
+          {!collapsed ? "Managements" : " "}
         </Typography>{" "}
         <Menu
           menuItemStyles={{
             button: {
               ":hover": {
-                color: "#868dfb",
+                color: "rgb(76, 67, 174)",
                 background: "transparent",
                 transition: ".4s ease",
               },
@@ -154,48 +155,62 @@ const SideBar = () => {
           }}
         >
           <Item
-            title="Manage Team"
+            title="Professors"
             path="/Dashboard/team"
             colors={colors}
             icon={<PeopleAltOutlined />}
           />
           <Item
-            title="Contacts Information"
+            title="fields"
             path="/Dashboard/contacts"
             colors={colors}
             icon={<ContactsOutlined />}
           />
           <Item
-            title="Invoices Balances"
+            title="Modules and Elements"
             path="/Dashboard/invoices"
             colors={colors}
             icon={<ReceiptOutlined />}
           />
+          <Item
+            title="Evaluation Modalities"
+            path="/Dashboard/team"
+            colors={colors}
+            icon={<PeopleAltOutlined />}
+          />
+          <Item
+            title="Assignment of Elements"
+            path="/Dashboard/team"
+            colors={colors}
+            icon={<PeopleAltOutlined />}
+          />
+          <Item
+            title="Accounts"
+            path="/Dashboard/form"
+            colors={colors}
+            icon={<PersonOutlined />}
+          />
+
         </Menu>
         <Typography
           variant="h6"
           color={colors.gray[300]}
           sx={{ m: "15px 0 5px 20px" }}
         >
-          {!collapsed ? "Pages" : " "}
+          {!collapsed ? "Utilities" : " "}
         </Typography>
         <Menu
           menuItemStyles={{
             button: {
               ":hover": {
-                color: "#868dfb",
+                color: "rgb(76, 67, 174)",
                 background: "transparent",
                 transition: ".4s ease",
               },
             },
           }}
         >
-          <Item
-            title="Profile Form"
-            path="/Dashboard/form"
-            colors={colors}
-            icon={<PersonOutlined />}
-          />
+
           <Item
             title="Calendar"
             path="/Dashboard/calendar"
@@ -220,7 +235,7 @@ const SideBar = () => {
           menuItemStyles={{
             button: {
               ":hover": {
-                color: "#868dfb",
+                color: "rgb(76, 67, 174)",
                 background: "transparent",
                 transition: ".4s ease",
               },
