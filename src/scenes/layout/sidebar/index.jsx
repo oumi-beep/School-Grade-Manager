@@ -18,8 +18,7 @@ import {
   TimelineOutlined,
   WavesOutlined,
 } from "@mui/icons-material";
-import avatar from "../../../assets/images/avatar.png";
-import logo from "../../../assets/images/logo.png";
+import avatar from "../../../assets/images/login.jpg";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
 
@@ -67,7 +66,7 @@ const SideBar = () => {
               >
                 <img
                   style={{ width: "30px", height: "30px", borderRadius: "8px" }}
-                  src={logo}
+                  src={avatar}
                   alt="Argon"
                 />
                 <Typography
@@ -98,7 +97,7 @@ const SideBar = () => {
         >
           <Avatar
             alt="avatar"
-            src={logo}
+            src={avatar}
             sx={{ width: "100px", height: "100px" }}
           />
           <Box sx={{ textAlign: "center" }}>
