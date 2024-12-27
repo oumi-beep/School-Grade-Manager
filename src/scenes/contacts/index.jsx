@@ -1,8 +1,11 @@
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme ,InputBase,IconButton} from "@mui/material";
 import { Header } from "../../components";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
+import {
+  SearchOutlined,
+} from "@mui/icons-material";
 
 const Contacts = () => {
   const theme = useTheme();
@@ -56,6 +59,11 @@ const Contacts = () => {
         title="CONTACTS"
         subtitle="List of Contacts for Future Reference"
       />
+        <InputBase placeholder="Search" sx={{ ml: 2, flex: 1 }} />
+        <IconButton type="button" sx={{ p: 1 }}>
+          <SearchOutlined />
+        </IconButton>
+            
       <Box
         mt="40px"
         height="75vh"
@@ -91,7 +99,9 @@ const Contacts = () => {
             color: `${colors.gray[100]} !important`,
           },
         }}
+
       >
+        
         <DataGrid
           rows={mockDataContacts}
           columns={columns}

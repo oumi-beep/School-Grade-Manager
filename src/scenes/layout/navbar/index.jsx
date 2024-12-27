@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { tokens, ColorModeContext } from "../../../theme";
 import { useContext } from "react";
+import {useNavigate} from 'react-router-dom';
 import {
   DarkModeOutlined,
   LightModeOutlined,
@@ -16,21 +17,24 @@ import {
   SearchOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
+import loginImage from "../../../assets/images/login.jpg";
 import { ToggledContext } from "../../../App";
 const Navbar = () => {
+  
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const { toggled, setToggled } = useContext(ToggledContext);
   const isMdDevices = useMediaQuery("(max-width:768px)");
-  const isXsDevices = useMediaQuery("(max-width:466px)");
-  const colors = tokens(theme.palette.mode);
+
   return (
+    
     <Box
       display="flex"
       alignItems="center"
       justifyContent="space-between"
       p={2}
     >
+      
       <Box display="flex" alignItems="center" gap={2}>
         <IconButton
           sx={{ display: `${isMdDevices ? "flex" : "none"}` }}
@@ -38,18 +42,26 @@ const Navbar = () => {
         >
           <MenuOutlined />
         </IconButton>
-        <Box
-          display="flex"
-          alignItems="center"
-          bgcolor={colors.primary[400]}
-          borderRadius="3px"
-          sx={{ display: `${isXsDevices ? "none" : "flex"}` }}
-        >
-          <InputBase placeholder="Search" sx={{ ml: 2, flex: 1 }} />
-          <IconButton type="button" sx={{ p: 1 }}>
-            <SearchOutlined />
-          </IconButton>
-        </Box>
+
+        
+      </Box>
+      <Box display="flex" alignItems="center" gap={2}>
+        <img src={loginImage} alt="Logo" style={{ width: '40px', height: '40px' }} />
+        <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Ensa-Kh</span>
+      </Box>
+
+      
+      <Box>
+       <nav className="nav-links">
+                <a href="/Dashboard">Dashboard</a>
+                <a href="/Dashboard/contacts">Professors</a>
+                <a href="/Dashboard/team">Fields</a>
+                <a href="/Dashboard/form">Modules and Elements</a>
+                <a href="/Dashboard/contacts">Evaluation Modalities</a>
+                <a href='/Dashboard/invoices' >Acount</a>
+                <a href="/Dashboard/faq">FAQ</a>
+                <a href="/Dashboard/calendar">Calendar</a>
+            </nav>
       </Box>
 
       <Box>
@@ -59,9 +71,6 @@ const Navbar = () => {
           ) : (
             <DarkModeOutlined />
           )}
-        </IconButton>
-        <IconButton>
-          <NotificationsOutlined />
         </IconButton>
         <IconButton>
           <SettingsOutlined />

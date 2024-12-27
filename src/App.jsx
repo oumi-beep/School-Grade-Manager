@@ -1,7 +1,7 @@
 import React, { createContext, useState } from "react";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
-import { Navbar, SideBar, AppHeader } from "./scenes";
+import { Navbar, AppHeader } from "./scenes";
 import { Outlet } from "react-router-dom";
 import './indexx.css';
 
@@ -21,7 +21,6 @@ function App() {
         <ToggledContext.Provider value={values}>
 
           <Box sx={{ display: "flex", height: "100vh", maxWidth: "100%" }}>
-            <SideBar />
             <Box
               sx={{
                 flexGrow: 1,
@@ -31,7 +30,7 @@ function App() {
                 maxWidth: "100%",
               }}
             >
-              <AppHeader />
+              
               <Navbar />
               <Box sx={{ overflowY: "auto", flex: 1, maxWidth: "100%" }}>
                 <Outlet />
