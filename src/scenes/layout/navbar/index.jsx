@@ -54,7 +54,7 @@ const Navbar = () => {
       <Box>
        <nav className="nav-links">
                 <a href="/Dashboard">Dashboard</a>
-                <a href="/Dashboard/contacts">Professors</a>
+                <a href="/Dashboard/Professors">Professors</a>
                 <a href="/Dashboard/team">Fields</a>
                 <a href="/Dashboard/form">Modules and Elements</a>
                 <a href="/Dashboard/contacts">Evaluation Modalities</a>
