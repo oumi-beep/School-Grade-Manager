@@ -15,6 +15,7 @@ import Geography from "./geography";
 import HomePage from "./HomePage";
 import Login from "./Login"
 import AppHeader from "./AppHeader";
+import ModuleElement from "./ModuleElement";
 
 export {
   Navbar,
@@ -34,4 +35,5 @@ export {
   HomePage,
   Login,
   AppHeader,
+  ModuleElement,
 }
