@@ -6,6 +6,10 @@ import { tokens } from "../../theme";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+import { IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+
 const Professors = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -26,6 +30,10 @@ const Professors = () => {
   };
   const addProfessor = async (e) => {
     e.preventDefault();
+    if (!professorData.professorCode || !professorData.firstName || !professorData.lastName || !professorData.specialty || !professorData.email) {
+      alert('Please fill in all fields');
+      return;
+    }
 
     const response = await fetch('http://localhost:8080/api/professors/add', {
       method: 'POST',
@@ -62,7 +70,7 @@ const Professors = () => {
       });
       
     } else {
-      alert('Failed to add professor');
+      alert('Failed to add professor ');
     }
   };
 
@@ -83,8 +91,29 @@ const Professors = () => {
         console.error('Error fetching professors:', error);
       });
   }, []);
-  
-
+  //elements fetch
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/element')
+      .then((response) => {
+        const transformedData = response.data.map((elmt, index) => ({
+          id: index + 1,
+          name: elmt.ElementName,  
+        }));
+        setElementsList(transformedData);
+      })
+      .catch((error) => {
+        console.error('Error fetching elements:', error);
+      });
+  }, []);
+  const [data, setElementsList] = useState([]);
+  const elemttable = [
+      { field: "id", headerName: "ID", flex: 0.5 },
+      {
+        field: "name", headerName: "Element Name", flex: 1,
+         cellClassName: "name-column--cell",
+      },
+  ];
   const columnsProf = [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "registrarId", headerName: "Professor Code", flex: 1 },
@@ -109,11 +138,51 @@ const Professors = () => {
       field: "text",
       headerName: "Action",
       flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Modify*/}
+            <IconButton onClick={() => handleUpdate(params.row.id)} style={{ color: 'blue' }}>
+            <EditIcon />
+            </IconButton>
+            
+            {/* Delete*/}
+            <IconButton
+              onClick={() => handleDelete(params.row.id)}
+               style={{ color: 'red' }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        );
+      },
     },
   ];
+
+  const handleDelete = (id) => {
+    axios
+      .delete(`http://localhost:8080/api/professors/delete/${id}`)
+      .then((response) => {
+        console.log('Professor deleted successfully:', response);
+        setProfessorsList((prevState) =>
+          prevState.filter((professor) => professor.id !== id)
+        );
+      })
+      .catch((error) => {
+        console.error('Error deleting professor:', error);
+      });
+  };
+
+  
   
   const ElemtAffectation = [
     { field: "id", headerName: "ID", flex: 0.5 },
+    {
+      field: "email",
+      headerName: "Professor Code",
+      flex: 1,
+      cellClassName: "name-column--cell",
+    },
     {
       field: "name",
       headerName: "Element Name",
@@ -124,6 +193,25 @@ const Professors = () => {
       field: "test",
       headerName: "Action",
       flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Modify Button (Edit Icon) */}
+            <IconButton
+               style={{ color: 'blue' }}
+            >
+              <EditIcon />
+            </IconButton>
+            
+            {/* Delete Button (Delete Icon) */}
+            <IconButton
+               style={{ color: 'red' }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        );
+      },
     },
   ];
 
@@ -160,21 +248,6 @@ const Professors = () => {
   };
 
   
-    const mockDataContactss = [
-    { id: 1, name: 'Element 1' },
-    { id: 2, name: 'Element 2' },
-    { id: 3, name: 'Element 3' },
-    { id: 4, name: 'Element 4' },
-  ];
-    const elemttable = [
-      { field: "id", headerName: "ID", flex: 0.5 },
-      {
-        field: "name",
-        headerName: "Element Name",
-        flex: 1,
-         cellClassName: "name-column--cell",
-      },
-    ];
 
 
   return (
@@ -256,7 +329,7 @@ const Professors = () => {
                 Element List:
               </label>
               <DataGrid
-                rows={mockDataContactss}
+                rows={data}
                 columns={elemttable}
                 components={{
                   Toolbar: () => (
