@@ -3,29 +3,100 @@ import { Header } from "../../components";
 import { DataGrid, GridToolbar ,GridToolbarQuickFilter} from "@mui/x-data-grid";
 import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
- 
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
 const Professors = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [professorsList, setProfessorsList] = useState([]);
+  const [professorData, setProfessorData] = useState({
+    professorCode: '',
+    firstName: '',
+    lastName: '',
+    specialty: '',
+    email: '',
+  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfessorData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+  const addProfessor = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch('http://localhost:8080/api/professors/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        codeProf: professorData.professorCode,
+        prenomUser: professorData.firstName,
+        nomUser: professorData.lastName,
+        specialite: professorData.specialty,
+        email: professorData.email,
+      }),
+    });
+
+    if (response.ok) {
+      alert('Professor added successfully');
+      const newProfessor = {
+        id: professorsList.length + 1,  
+        registrarId: professorData.professorCode,
+        name: `${professorData.firstName} ${professorData.lastName}`,
+        specialty: professorData.specialty,
+        email: professorData.email,
+      };
+      
+      setProfessorsList((prevState) => [...prevState, newProfessor]);
+      
+       setProfessorData({
+        professorCode: '',
+        firstName: '',
+        lastName: '',
+        specialty: '',
+        email: '',
+      });
+      
+    } else {
+      alert('Failed to add professor');
+    }
+  };
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/professors')
+      .then((response) => {
+        const transformedData = response.data.map((prof, index) => ({
+          id: index + 1,  
+          registrarId: prof.CodeProf,
+          name: `${prof.FirstName} ${prof.LastName}`,
+          specialty: prof.Specialite,
+          email: prof.Email,
+        }));
+        setProfessorsList(transformedData);
+      })
+      .catch((error) => {
+        console.error('Error fetching professors:', error);
+      });
+  }, []);
+  
 
   const columnsProf = [
     { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Professor Code" },
+    { field: "registrarId", headerName: "Professor Code", flex: 1 },
     {
       field: "name",
-      headerName: "First Name",
+      headerName: "Name",
       flex: 1,
-      cellClassName: "name-column--cell",
+      cellClassName: "name-column--cell", 
     },
+   
     {
-      field: "age",
-      headerName: "Last Name",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "phone",
+      field: "specialty",  
       headerName: "Specialty",
       flex: 1,
     },
@@ -40,7 +111,7 @@ const Professors = () => {
       flex: 1,
     },
   ];
-
+  
   const ElemtAffectation = [
     { field: "id", headerName: "ID", flex: 0.5 },
     {
@@ -108,119 +179,149 @@ const Professors = () => {
 
   return (
     <Box m="20px">
-      <Header title="Professors :" subtitle="List of Professors And their affected element" />
-      <Box m="20px" style={{ backgroundColor: '#f9f9f9', borderRadius: '15px', padding: '20px', boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)' }}>
-        <Box display="flex" gap="20px" mb="20px">
-          {/* Left Side */}
-          <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
-            <Box display="flex" gap="20px">
-              <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                <label htmlFor="professorCode" style={labelStyle}>Professor Code:</label>
-                <input type="text" style={inputStyle} id="professorCode" name="professorCode" />
+    <Header title="Professors :" subtitle="List of Professors And their affected element" />
+    <Box m="20px" style={{ backgroundColor: '#f9f9f9', borderRadius: '15px', padding: '20px', boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)' }}>
+            <Box display="flex" gap="20px" mb="20px">
+              <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                 <Box display="flex" gap="20px">
+                  <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label htmlFor="professorCode" style={labelStyle}>Professor Code:</label>
+                    <input
+                      type="text"
+                      style={inputStyle}
+                      id="professorCode"
+                      name="professorCode"
+                      value={professorData.professorCode}
+                      onChange={handleChange}
+                    />
+                  </Box>
+                  <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label htmlFor="firstName" style={labelStyle}>First Name:</label>
+                    <input
+                      type="text"
+                      style={inputStyle}
+                      id="firstName"
+                      name="firstName"
+                      value={professorData.firstName}
+                      onChange={handleChange}
+                    />
+                  </Box>
+                </Box>
+                <Box display="flex" gap="20px">
+                  <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label htmlFor="lastName" style={labelStyle}>Last Name:</label>
+                    <input
+                      type="text"
+                      style={inputStyle}
+                      id="lastName"
+                      name="lastName"
+                      value={professorData.lastName}
+                      onChange={handleChange}
+                    />
+                  </Box>
+                  <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label htmlFor="specialty" style={labelStyle}>Specialty:</label>
+                    <input
+                      type="text"
+                      style={inputStyle}
+                      id="specialty"
+                      name="specialty"
+                      value={professorData.specialty}
+                      onChange={handleChange}
+                    />
+                  </Box>
+                </Box>
+                <Box display="flex" gap="20px">
+                  <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                    <label htmlFor="email" style={labelStyle}>E-mail:</label>
+                    <input
+                      type="email"
+                      style={inputStyle}
+                      id="email"
+                      name="email"
+                      value={professorData.email}
+                      onChange={handleChange}
+                    />
+                  </Box>
+                  <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+                    <button style={buttonStyle} onClick={addProfessor} type="submit">Submit</button>
+                  </Box>
+                </Box>
               </Box>
-              <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                <label htmlFor="firstName" style={labelStyle}>First Name:</label>
-                <input type="text" style={inputStyle} id="firstName" name="firstName" />
-              </Box>
-              
-            </Box>
-            <Box display="flex" gap="20px">
-              <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                <label htmlFor="lastName" style={labelStyle}>Last Name:</label>
-                <input type="text" style={inputStyle} id="lastName" name="lastName" />
-              </Box>
-              <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                <label htmlFor="specialty" style={labelStyle}>Specialty:</label>
-                <input type="text" style={inputStyle} id="specialty" name="specialty" />
-              </Box>
-              
-            </Box>
-            <Box display="flex" gap="20px">
-            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                <label htmlFor="email" style={labelStyle}>E-mail:</label>
-                <input type="email" style={inputStyle} id="email" name="email" />
-              </Box>
-              <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                <button style={buttonStyle} type="submit">Submit</button>
-              </Box>
-              </Box>
-          </Box>
-
+            
           {/* Right Side  */}
-          <Box width={"25%"} height={{ xs: '80%', sm: '90%', md: '25%' }} style={{ display: 'flex', flexDirection: 'column' }}>
-            <label 
-              style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
-               Element List:
-            </label>
-            <DataGrid
-              rows={mockDataContactss}
-              columns={elemttable}
-              components={{
-                Toolbar: () => (
-                  <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
-                    <GridToolbarQuickFilter />
-                  </div>
-                ),
-              }}
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 10,
+            <Box width={"25%"} height={{ xs: '80%', sm: '90%', md: '25%' }} style={{ display: 'flex', flexDirection: 'column' }}>
+              <label 
+                style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
+                Element List:
+              </label>
+              <DataGrid
+                rows={mockDataContactss}
+                columns={elemttable}
+                components={{
+                  Toolbar: () => (
+                    <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
+                      <GridToolbarQuickFilter />
+                    </div>
+                  ),
+                }}
+                initialState={{
+                  pagination: {
+                    paginationModel: {
+                      pageSize: 10,
+                    },
                   },
-                },
-              }}
-              checkboxSelection
-              sx={{
-                "& .MuiDataGrid-root": {
-                  border: "none",
-                  height: '500px', // Adjust height here
-                  overflow: 'hidden',
-                },
-                "& .MuiDataGrid-cell": {
-                  border: "none",
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                },
-                "& .name-column--cell": {
-                  color: '#4CAF50',
-                },
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: "#d8eaf4",
-                  borderBottom: "none",
-                },
-                "& .MuiDataGrid-footerContainer": {
-                  borderTop: "none",
-                  backgroundColor: "#d8eaf4",
-                },
-                "& .MuiDataGrid-virtualScroller": {
-                  backgroundColor: '#e0f7fa',
-                  overflowY: 'auto',
-                },
-                "& .MuiCheckbox-root": {
-                  color: 'black !important',
-                },
-                "& .MuiDataGrid-iconSeparator": {
-                  color: '#b2ebf2',
-                },
-                "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                  color: '#ffffff !important',
-                },
-              }}
-            />
-            <br />
-            <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-              <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">Submit</button>
+                }}
+                checkboxSelection
+                sx={{
+                  "& .MuiDataGrid-root": {
+                    border: "none",
+                    height: '500px',  
+                    overflow: 'hidden',
+                  },
+                  "& .MuiDataGrid-cell": {
+                    border: "none",
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  },
+                  "& .name-column--cell": {
+                    color: '#4CAF50',
+                  },
+                  "& .MuiDataGrid-columnHeaders": {
+                    backgroundColor: "#d8eaf4",
+                    borderBottom: "none",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    borderTop: "none",
+                    backgroundColor: "#d8eaf4",
+                  },
+                  "& .MuiDataGrid-virtualScroller": {
+                    backgroundColor: '#e0f7fa',
+                    overflowY: 'auto',
+                  },
+                  "& .MuiCheckbox-root": {
+                    color: 'black !important',
+                  },
+                  "& .MuiDataGrid-iconSeparator": {
+                    color: '#b2ebf2',
+                  },
+                  "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                    color: '#ffffff !important',
+                  },
+                }}
+              />
+              <br />
+              <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+                <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">Submit</button>
+              </Box>
             </Box>
-          </Box>
-
-        </Box>
-      </Box>
-
+            </Box>
+            </Box>
       <Box display="flex" gap="20px" height="75vh">
         <Box flex={1} sx={{ maxWidth: "70%" }}>
           <DataGrid
-            rows={mockDataContacts}
+            rows={professorsList}
             columns={columnsProf}
             components={{ Toolbar: GridToolbar }}
             initialState={{

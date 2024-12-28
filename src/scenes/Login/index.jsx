@@ -8,7 +8,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate(); // Correct useNavigate
+  const navigate = useNavigate();
+  
   const handleLogin = async (e) => {
     e.preventDefault();
 
