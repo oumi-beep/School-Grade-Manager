@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import '../../assets/Login.css';
-import { useNavigate}  from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import loginImage from "../../assets/images/login.jpg";
 
 const Login = () => {
@@ -9,7 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -24,7 +24,7 @@ const Login = () => {
         email,
         password,
       });
-    
+
       if (response.status === 200) {
         alert("Login successful!");
         navigate("/Dashboard");
@@ -45,7 +45,7 @@ const Login = () => {
         setErrorMessage("Network error. Please try again later.");
       }
     }
-  };    
+  };
 
   return (
     <div className="Login_fullbackground">

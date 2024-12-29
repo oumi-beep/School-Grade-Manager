@@ -16,7 +16,8 @@ import {
   Stream,
   HomePage,
   Login,
-  ModuleElement
+  ModuleElement,
+  ModeEvaluation
 } from "./scenes";
 import Professors from "./scenes/Professors";
 
@@ -32,7 +33,7 @@ const AppRouter = () => {
           <Route path="/Dashboard/Professors" element={<Professors />} />
           <Route path="/Dashboard/ModuleElement" element={<ModuleElement />} />
           <Route path="/Dashboard/team" element={<Team />} />
-          <Route path="/Dashboard/contacts" element={<Contacts />} />
+          <Route path="/Dashboard/ModeEvaluation" element={<ModeEvaluation />} />
           <Route path="/Dashboard/invoices" element={<Invoices />} />
           <Route path="/Dashboard/form" element={<Form />} />
           <Route path="/Dashboard/calendar" element={<Calendar />} />

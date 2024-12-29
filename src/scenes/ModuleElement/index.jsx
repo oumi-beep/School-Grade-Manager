@@ -1,86 +1,206 @@
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, IconButton } from "@mui/material";
 import { Header } from "../../components";
 import { DataGrid, GridToolbar, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import React, { useState, useEffect } from "react";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 const ModuleElement = () => {
 
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
 
-    const [modules, setModules] = useState([]);
-    const index = 0;
+    const [modulesList, setModulesList] = useState([]);
+    const [moduleData, setModuleData] = useState({
+        codeModule: "",
+        nomModule: "",
+        nomSemestre: "",
+        nomFiliere: "",
+        elementsNom: "",
+        elementsCoeff: "",
+    });
 
+
+
+
+    const [editingModule, setEditingModule] = useState(null);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setModuleData((prevState) => ({
+            ...prevState,
+            [name]: value,
+        }));
+    };
+
+    const addModule = async (e) => {
+        e.preventDefault();
+        const { codeModule, nomModule, nomSemestre, nomFiliere, elementsNom, elementsCoeff } = moduleData;
+
+        if (!codeModule || !nomModule || !nomSemestre || !nomFiliere || !elementsNom || !elementsCoeff) {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+
+        const elementsNomArray = elementsNom.split(",").map((nom) => nom.trim());
+        const elementsCoeffArray = elementsCoeff.split(",").map((coeff) => parseFloat(coeff.trim()));
+
+        if (elementsNomArray.length !== elementsCoeffArray.length) {
+            alert("Le nombre d'éléments ne correspond pas au nombre de coefficients.");
+            return;
+        }
+
+        // Construction des paramètres pour l'envoi correct au backend
+        const urlSearchParams = new URLSearchParams({
+            codeModule,
+            nomModule,
+            nomSemestre,
+            nomFiliere,
+        });
+
+        elementsNomArray.forEach((nom) => {
+            urlSearchParams.append("elementsNom", nom);
+        });
+
+        elementsCoeffArray.forEach((coeff) => {
+            urlSearchParams.append("elementsCoeff", coeff);
+        });
+
+        try {
+            const response = await fetch("http://localhost:8080/api/modules/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: urlSearchParams.toString(),
+            });
+
+            if (response.ok) {
+                alert("Module ajouté avec succès.");
+                const newModule = await response.json();
+                setModulesList((prevState) => [
+                    ...prevState,
+                    { id: prevState.length + 1, ...newModule },
+                ]);
+                setModuleData({
+                    codeModule: "",
+                    nomModule: "",
+                    nomSemestre: "",
+                    nomFiliere: "",
+                    elementsNom: "",
+                    elementsCoeff: "",
+                });
+            } else {
+                alert("Échec de l'ajout du module.");
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'ajout du module:", error);
+        }
+    };
+
+
+
+    const handleEdit = (module) => {
+        setModuleData({
+            codeModule: module.codeModule,
+            nomModule: module.nomModule,
+            nomFiliere: module.nomFiliere,
+            nomSemestre: module.nomSemestre,
+        });
+        setEditingModule(module.idModule);
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        if (!moduleData.codeModule || !moduleData.nomModule || !moduleData.nomFiliere || !moduleData.nomSemestre) {
+            alert("Veuillez remplir tous les champs.");
+            return;
+        }
+
+        const response = await fetch(`http://localhost:8080/api/modules/update/${editingModule}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                codeModule: moduleData.codeModule,
+                nomModule: moduleData.nomModule,
+                filiere: moduleData.nomFiliere,
+                semestre: moduleData.nomSemestre,
+            }),
+        });
+
+        if (response.ok) {
+            alert("Module mis à jour avec succès.");
+            const updatedModule = await response.json();
+            setModulesList((prevState) =>
+                prevState.map((module) =>
+                    module.idModule === editingModule ? { ...module, ...updatedModule } : module
+                )
+            );
+            setModuleData({ codeModule: "", nomModule: "", nomFiliere: "", nomSemestre: "" });
+            setEditingModule(null);
+        } else {
+            alert("Échec de la mise à jour du module.");
+        }
+    };
+
+    const handleDelete = (id) => {
+        axios
+            .delete(`http://localhost:8080/api/modules/delete/${id}`)
+            .then(() => {
+                setModulesList((prevState) =>
+                    prevState.filter((module) => module.idModule !== id)
+                );
+                alert("Module supprimé avec succès.");
+            })
+            .catch((error) => console.error("Erreur lors de la suppression :", error));
+    };
     useEffect(() => {
         axios
-            .get('http://localhost:8080/api/modules')
+            .get("http://localhost:8080/api/modules")
             .then((response) => {
-                console.log(response.data); // Vérifiez la structure des données
-                let data = response.data;
-                // Si ce n'est pas un tableau, on le transforme en tableau
-                if (!Array.isArray(data)) {
-                    // Ici, nous enveloppons 'data' dans un tableau si ce n'est pas déjà un tableau
-                    data = [data]; // Par exemple, si data est un objet, nous l'enveloppons dans un tableau
-                }
-
-                // Maintenant que 'data' est un tableau, nous pouvons le transformer
-                const transformedData = data.map((module) => ({
+                const transformedData = response.data.map((module, index) => ({
                     id: index + 1,
-                    codeModule: module.codeModule,
-                    nomModule: module.nomModule,
-                    filiere: module.filiere,  // suppose que 'filiere' est un objet
-                    semestre: module.semestre,  // suppose que 'semestre' est un objet
+                    ...module,
                 }));
-
-                setModules(transformedData); // Mettre à jour l'état avec les modules transformés
+                setModulesList(transformedData);
             })
-            .catch((error) => {
-                console.error('Erreur lors du chargement des modules:', error);
-            });
+            .catch((error) => console.error("Erreur lors de la récupération :", error));
     }, []);
 
 
 
     const columnsModules = [
-        { field: 'id', headerName: 'ID', flex: 0.5 },
-        { field: 'codeModule', headerName: 'Code Module', flex: 1 },
-        { field: 'nomModule', headerName: 'Nom Module', flex: 1 },
+        { field: "idModule", headerName: "ID", flex: 0.5 },
+        { field: "codeModule", headerName: "Code", flex: 1 },
+        { field: "nomModule", headerName: "Nom", flex: 1 },
+        { field: "nomSemestre", headerName: "Semestre", flex: 1 },
+        { field: "nomFiliere", headerName: "Filière", flex: 1 },
         {
-            field: 'filiere',
-            headerName: 'Nom Filière',
+            field: "actions",
+            headerName: "Actions",
             flex: 1,
-
-        },
-        {
-            field: 'semestre',
-            headerName: 'Nom Semestre',
-            flex: 1,
-
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            flex: 1,
-
+            renderCell: (params) => (
+                <>
+                    <IconButton
+                        onClick={() => handleEdit(params.row)}
+                        style={{ color: "blue", marginRight: "10px" }}
+                    >
+                        <EditIcon />
+                    </IconButton>
+                    <IconButton
+                        onClick={() => handleDelete(params.row.idModule)}
+                        style={{ color: "red" }}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </>
+            ),
         },
     ];
-
-    // Supprimer un module
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`http://localhost:8080/api/modules/delete/${id}`);
-            setModules((prevModules) => prevModules.filter((module) => module.idModule !== id));
-        } catch (error) {
-            console.error("Erreur lors de la suppression :", error);
-        }
-    };
-    // Éditer un module (action future)
-    const handleEdit = (module) => {
-        console.log("Édition :", module);
-        // Logique pour ouvrir un formulaire de modification
-    };
 
 
 
@@ -95,6 +215,12 @@ const ModuleElement = () => {
         {
             field: "coefficient",
             headerName: "coefficient",
+            flex: 1,
+            cellClassName: "name-column--cell",
+        },
+        {
+            field: "etatElement",
+            headerName: "Etat ",
             flex: 1,
             cellClassName: "name-column--cell",
         },
@@ -138,21 +264,7 @@ const ModuleElement = () => {
     };
 
 
-    const mockDataContactss = [
-        { id: 1, name: 'Element 1' },
-        { id: 2, name: 'Element 2' },
-        { id: 3, name: 'Element 3' },
-        { id: 4, name: 'Element 4' },
-    ];
-    const elemttable = [
-        { field: "id", headerName: "ID", flex: 0.5 },
-        {
-            field: "name",
-            headerName: "Element Name",
-            flex: 1,
-            cellClassName: "name-column--cell",
-        },
-    ];
+
 
 
     return (
@@ -175,54 +287,79 @@ const ModuleElement = () => {
                                 <label htmlFor="codeModule" style={labelStyle}>
                                     Code Module :
                                 </label>
-                                <input type="text" style={inputStyle} id="codeModule" name="codeModule" />
+                                <input
+                                    type="text"
+                                    style={inputStyle}
+                                    id="codeModule"
+                                    name="codeModule"
+                                    value={moduleData.codeModule}
+                                    onChange={handleChange} />
                             </Box>
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label htmlFor="nomModule" style={labelStyle}>
                                     Nom du Module :
                                 </label>
-                                <input type="text" style={inputStyle} id="nomModule" name="nomModule" />
+                                <input type="text" style={inputStyle}
+                                    id="nomModule"
+                                    name="nomModule"
+                                    value={moduleData.nomModule}
+                                    onChange={handleChange} />
                             </Box>
                         </Box>
 
                         <Box display="flex" gap="20px">
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="semestre" style={labelStyle}>
+                                <label htmlFor="nomSemestre" style={labelStyle}>
                                     Semestre :
                                 </label>
-                                <select id="semestre" style={inputStyle} name="semestre">
-                                    <option value="">Sélectionner un semestre</option>
-                                    {/* Options dynamiques pour les semestres */}
-                                </select>
+                                <input
+                                    id="nomSemestre"
+                                    style={inputStyle}
+                                    name="nomSemestre"
+                                    value={moduleData.nomSemestre}
+                                    onChange={handleChange}
+                                >                                </input>
                             </Box>
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="filiere" style={labelStyle}>
+                                <label htmlFor="nomFiliere" style={labelStyle}>
                                     Filière :
                                 </label>
-                                <select id="filiere" style={inputStyle} name="filiere">
-                                    <option value="">Sélectionner une filière</option>
-                                    {/* Options dynamiques pour les filières */}
-                                </select>
+                                <input
+                                    id="nomFiliere"
+                                    style={inputStyle}
+                                    name="nomFiliere"
+                                    value={moduleData.nomFiliere}
+                                    onChange={handleChange}
+                                >
+                                </input>
                             </Box>
                         </Box>
+
                         <Box display="flex" gap="20px">
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="nomElement" style={labelStyle}>
-                                    Nom Élément :
-                                </label>
-                                <input type="text" style={inputStyle} id="nomElement" name="nomElement" />
-                            </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="coefficient" style={labelStyle}>
-                                    Coefficient de l'Élément :
+                                <label htmlFor="elementsNom" style={labelStyle}>
+                                    Noms des Élément (séparés par des virgules) :
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    id="elementsNom"
+                                    name="elementsNom"
+                                    value={moduleData.elementsNom}
+                                    onChange={handleChange}
                                     style={inputStyle}
-                                    id="coefficient"
-                                    name="coefficient"
-                                    min="0"
-                                    step="0.1"
+                                />
+                            </Box>
+                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label htmlFor="elementsCoeff" style={labelStyle}>
+                                    Coefficients des Élément (séparés par des virgules) :
+                                </label>
+                                <input
+                                    type="text"
+                                    id="elementsCoeff"
+                                    name="elementsCoeff"
+                                    value={moduleData.elementsCoeff}
+                                    onChange={handleChange}
+                                    style={inputStyle}
                                 />
                             </Box>
                         </Box>
@@ -230,11 +367,8 @@ const ModuleElement = () => {
 
                         <Box display="flex" gap="20px" justifyContent="center" mt="20px">
                             <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                                <button style={buttonStyle} type="submit">
-                                    Ajouter
-                                </button>
-                                <button style={buttonStyle} type="submit">
-                                    Modifier
+                                <button onClick={editingModule ? handleUpdate : addModule}>
+                                    {editingModule ? "Mettre à jour" : "Ajouter"}
                                 </button>
                             </Box>
                         </Box>
@@ -248,7 +382,7 @@ const ModuleElement = () => {
                             Element List:
                         </label>
                         <DataGrid
-                            rows={mockDataContactss} // Données à afficher
+                            rows={mockDataContacts} // Données à afficher
                             columns={[
                                 { field: 'nomElement', headerName: 'Nom Élément', flex: 1 },
                                 { field: 'coefficient', headerName: 'Coefficient', flex: 1 },
@@ -320,7 +454,7 @@ const ModuleElement = () => {
             <Box display="flex" gap="20px" height="75vh">
                 <Box flex={1} sx={{ maxWidth: "70%" }}>
                     <DataGrid
-                        rows={modules}
+                        rows={modulesList}
                         columns={columnsModules}
                         components={{ Toolbar: GridToolbar }}
                         initialState={{

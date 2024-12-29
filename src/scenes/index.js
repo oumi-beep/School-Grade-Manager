@@ -16,7 +16,7 @@ import HomePage from "./HomePage";
 import Login from "./Login"
 import AppHeader from "./AppHeader";
 import ModuleElement from "./ModuleElement";
-
+import ModeEvaluation from "./ModeEvaluation"
 export {
   Navbar,
   SideBar,
@@ -36,4 +36,5 @@ export {
   Login,
   AppHeader,
   ModuleElement,
+  ModeEvaluation
 }
