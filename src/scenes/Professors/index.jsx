@@ -5,7 +5,7 @@ import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -13,209 +13,43 @@ import EditIcon from '@mui/icons-material/Edit';
 const Professors = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [elementsListProfID, setElementsListProfID] = useState([]);  
+  const [selectedProfessorCode, setSelectedProfessorCode] = useState(null); 
+  const [selectedElements, setSelectedElements] = useState([]);
 
-  const [professorsList, setProfessorsList] = useState([]);
-  const [professorData, setProfessorData] = useState({
-    professorCode: '',
-    firstName: '',
-    lastName: '',
-    specialty: '',
-    email: '',
-  });
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfessorData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-  const addProfessor = async (e) => {
-    e.preventDefault();
-    if (!professorData.professorCode || !professorData.firstName || !professorData.lastName || !professorData.specialty || !professorData.email) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    const response = await fetch('http://localhost:8080/api/professors/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        codeProf: professorData.professorCode,
-        prenomUser: professorData.firstName,
-        nomUser: professorData.lastName,
-        specialite: professorData.specialty,
-        email: professorData.email,
-      }),
-    });
-
-    if (response.ok) {
-      alert('Professor added successfully');
-      const newProfessor = {
-        id: professorsList.length + 1,
-        registrarId: professorData.professorCode,
-        name: `${professorData.firstName} ${professorData.lastName}`,
-        specialty: professorData.specialty,
-        email: professorData.email,
-      };
-
-      setProfessorsList((prevState) => [...prevState, newProfessor]);
-
-      setProfessorData({
-        professorCode: '',
-        firstName: '',
-        lastName: '',
-        specialty: '',
-        email: '',
-      });
-
-    } else {
-      alert('Failed to add professor ');
-    }
-  };
-
+  //For elemnts tockens affected to a professor
   useEffect(() => {
+    if (!selectedProfessorCode) return; // Skip if no professor is selected
+  
     axios
-      .get('http://localhost:8080/api/professors')
+      .get(`http://localhost:8080/api/element/elements_professors/${selectedProfessorCode}`)
       .then((response) => {
-        const transformedData = response.data.map((prof, index) => ({
-          id: index + 1,
-          registrarId: prof.CodeProf,
-          name: `${prof.FirstName} ${prof.LastName}`,
-          specialty: prof.Specialite,
-          email: prof.Email,
-        }));
-        setProfessorsList(transformedData);
-      })
-      .catch((error) => {
-        console.error('Error fetching professors:', error);
-      });
-  }, []);
-  //elements fetch
-  useEffect(() => {
-    axios
-      .get('http://localhost:8080/api/element')
-      .then((response) => {
-        const transformedData = response.data.map((elmt, index) => ({
-          id: index + 1,
-          name: elmt.ElementName,  
-        }));
-        setElementsList(transformedData);
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          const transformedData = response.data.map((elmt) => ({
+            id: elmt.ElementId, // Use ElementId from backend
+            name: elmt.ElementName, 
+            CodeProf: elmt.CodeProf,
+          }));
+          setElementsListProfID(transformedData); // Update elements list
+        } else {
+          console.log('No elements found for this professor');
+          setElementsListProfID([]);   
+        }
       })
       .catch((error) => {
         console.error('Error fetching elements:', error);
+        setElementsListProfID([]);   
       });
-  }, []);
-  const [data, setElementsList] = useState([]);
-  const elemttable = [
-      { field: "id", headerName: "ID", flex: 0.5 },
-      {
-        field: "name", headerName: "Element Name", flex: 1,
-         cellClassName: "name-column--cell",
-      },
-  ];
-  const columnsProf = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Professor Code", flex: 1 },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-
-    {
-      field: "specialty",
-      headerName: "Specialty",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "E-mail",
-      flex: 1,
-    },
-    {
-      field: "text",
-      headerName: "Action",
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {/* Modify*/}
-            <IconButton onClick={() => handleUpdate(params.row.id)} style={{ color: 'blue' }}>
-            <EditIcon />
-            </IconButton>
-            
-            {/* Delete*/}
-            <IconButton
-              onClick={() => handleDelete(params.row.id)}
-               style={{ color: 'red' }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const handleDelete = (id) => {
-    axios
-      .delete(`http://localhost:8080/api/professors/delete/${id}`)
-      .then((response) => {
-        console.log('Professor deleted successfully:', response);
-        setProfessorsList((prevState) =>
-          prevState.filter((professor) => professor.id !== id)
-        );
-      })
-      .catch((error) => {
-        console.error('Error deleting professor:', error);
-      });
-  };
-
+  }, [selectedProfessorCode]); // Re-fetch when selectedProfessorCode changes
   
-  
-  const ElemtAffectation = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    {
-      field: "email",
-      headerName: "Professor Code",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "name",
-      headerName: "Element Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "test",
-      headerName: "Action",
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            {/* Modify Button (Edit Icon) */}
-            <IconButton
-               style={{ color: 'blue' }}
-            >
-              <EditIcon />
-            </IconButton>
-            
-            {/* Delete Button (Delete Icon) */}
-            <IconButton
-               style={{ color: 'red' }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        );
-      },
-    },
-  ];
 
+    const handleFetchElements = (professorCode) => {
+        console.log('Selected Professor Code:', professorCode); 
+        setSelectedProfessorCode(professorCode); 
+    };
+    
+
+   
   const labelStyle = {
     color: colors.gray[700],
     fontWeight: '600',
@@ -247,6 +81,301 @@ const Professors = () => {
     fontSize: '1rem',
     boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
   };
+   
+  const [professorsList, setProfessorsList] = useState([]);
+  const [professorData, setProfessorData] = useState({
+    professorCode: '',
+    firstName: '',
+    lastName: '',
+    specialty: '',
+    email: '',
+  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfessorData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+    
+  const addProfessor = async (e) => {
+    e.preventDefault();
+    
+    if (!professorData.professorCode || !professorData.firstName || !professorData.lastName || !professorData.specialty || !professorData.email) {
+      alert('Please fill in all fields');
+      return;
+    }
+  
+    let response;
+    
+    if (isEditMode) {
+      response = await fetch(`http://localhost:8080/api/professors/update/${editingProfessor.idUser}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          codeProf: professorData.professorCode,
+          prenomUser: professorData.firstName,
+          nomUser: professorData.lastName,
+          specialite: professorData.specialty,
+          email: professorData.email,
+          // Add the selected elements to the update request
+        }),
+      });
+    } else {
+      response = await fetch('http://localhost:8080/api/professors/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          codeProf: professorData.professorCode,
+          prenomUser: professorData.firstName,
+          nomUser: professorData.lastName,
+          specialite: professorData.specialty,
+          email: professorData.email,
+         }),
+      });
+    }
+  
+    if (response.ok) {
+      alert(isEditMode ? 'Professor updated successfully' : 'Professor added successfully');
+       const newProfessor = {
+        id: professorsList.length + 1,
+        idUser: isEditMode ? editingProfessor.idUser : professorsList.length + 1,
+        registrarId: professorData.professorCode,
+        name: `${professorData.firstName} ${professorData.lastName}`,
+        specialty: professorData.specialty,
+        email: professorData.email,
+      };
+  
+      setProfessorsList((prevState) =>
+        isEditMode
+          ? prevState.map((prof) =>
+              prof.idUser === editingProfessor.idUser ? newProfessor : prof
+            )
+          : [...prevState, newProfessor]
+      );
+  
+      setProfessorData({
+        professorCode: '',
+        firstName: '',
+        lastName: '',
+        specialty: '',
+        email: '',
+      });
+      setIsEditMode(false);
+      setEditingProfessor(null);
+    } else {
+      alert(isEditMode ? 'Failed to update professor' : 'Failed to add professor');
+    }
+  };
+  
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/professors')
+      .then((response) => {
+        const transformedData = response.data.map((prof, index) => ({
+          id: index + 1,
+          idUser: prof.UserId,
+          registrarId: prof.CodeProf,
+          name: `${prof.FirstName} ${prof.LastName}`,
+          specialty: prof.Specialite,
+          email: prof.Email,
+        }));
+        setProfessorsList(transformedData);
+      })
+      .catch((error) => {
+        console.error('Error fetching professors:', error);
+      });
+  }, []);
+
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/element')
+      .then((response) => {
+        const transformedData = response.data.map((elmt, index) => ({
+          id: index + 1,
+          ElementID: elmt.ElementID,
+          name: elmt.ElementName,
+        }));
+        setElementsList(transformedData); 
+      })
+      .catch((error) => {
+        console.error('Error fetching elements:', error);
+      });
+  }, []); 
+  
+  const [data, setElementsList] = useState([]);
+  const elemttable = [
+      { field: "id", headerName: "ID", flex: 0.5 },
+      {
+        field: "ElementID", headerName: "Id Element", flex: 1,
+         cellClassName: "name-column--cell",
+      },
+      {
+        field: "name", headerName: "Element Name", flex: 1,
+         cellClassName: "name-column--cell",
+      },
+  ];
+  const columnsProf = [
+    { field: "id", headerName: "ID", flex: 0.5 },
+    { field: "idUser", headerName: "User id", flex: 0.5 },
+    { field: "registrarId", headerName: "Professor Code", flex: 1 },
+    {
+      field: "name",
+      headerName: "Name",
+      flex: 1,
+      cellClassName: "name-column--cell",
+    },
+
+    {
+      field: "specialty",
+      headerName: "Specialty",
+      flex: 1,
+    },
+    {
+      field: "email",
+      headerName: "E-mail",
+      flex: 1,
+    },
+    {
+      field: "text",
+      headerName: "Action",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Modify*/}
+            <IconButton   onClick={() => handleEdit(params.row)} style={{ color: 'blue' }}>
+            <EditIcon />
+            </IconButton>
+            
+            {/* Delete*/}
+            <IconButton
+              onClick={() => handleDelete(params.row.idUser)}
+               style={{ color: 'red' }}
+            >
+              <DeleteIcon />
+            </IconButton>
+            {/* View */}
+            <IconButton
+              onClick={() => handleFetchElements(params.row.registrarId)}    
+              style={{ color: "black" }}
+              title="Afficher" 
+            >
+              <VisibilityIcon />
+            </IconButton>
+
+          
+         
+          </div>
+        );
+      },
+    },
+  ];
+
+
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingProfessor, setEditingProfessor] = useState(null);
+
+  const handleEdit = (professor) => {
+    setEditingProfessor(professor);
+    setProfessorData({
+      professorCode: professor.registrarId,
+      firstName: professor.name.split(' ')[0],
+      lastName: professor.name.split(' ')[1],
+      specialty: professor.specialty,
+      email: professor.email,
+    });
+    setIsEditMode(true);
+  };
+  
+
+
+  const handleDelete = (idUser) => {
+    axios
+      .delete(`http://localhost:8080/api/professors/delete/${idUser}`)
+      .then((response) => {
+        alert("Professor deleted successfully!");
+         setProfessorsList((prevState) =>
+          prevState.filter((professor) => professor.idUser !== idUser)
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting professor:", error);
+      });
+  };
+
+  const handleRemoveProfessor = async (id) => {
+    if (!window.confirm("Are you sure you want to remove the professor from this element?")) {
+      return;
+    }
+
+    try {
+       const response = await axios.put(`http://localhost:8080/api/element/${id}/remove-professor`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.status === 200) {
+        alert('Professor removed successfully');
+        // Directly update the list by filtering out the deleted element
+        setElementsListProfID((prevList) =>
+          prevList.filter((elmt) => elmt.id !== id)
+        );
+      }else {
+        alert('Failed to remove the professor');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('An error occurred while trying to remove the professor.');
+    }
+  };
+
+  
+ 
+  const ElemtAffectation = [ 
+    { field: "id", 
+      headerName: "ID",
+      flex: 0.5 },
+      {
+      field: "name",
+      headerName: "Element Name",
+      flex: 1,
+      cellClassName: "name-column--cell",
+    },
+    {
+      field: "CodeProf",
+      headerName: "Professor Code",
+      flex: 1,
+      cellClassName: "name-column--cell",
+    },
+    
+    {
+      field: "test",
+      headerName: "Action",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: 'flex', gap: '10px' }}>
+    
+            {/* Delete Button */}
+            <IconButton
+                style={{ color: 'red' }}
+                onClick={() => handleRemoveProfessor(params.row.id)} 
+              >
+                <DeleteIcon />
+              </IconButton>
+          </div>
+        );
+      },
+    },
+  ];
+
 
   
 
@@ -267,6 +396,7 @@ const Professors = () => {
                   name="professorCode"
                   value={professorData.professorCode}
                   onChange={handleChange}
+                  disabled={isEditMode}
                 />
               </Box>
               <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -318,13 +448,15 @@ const Professors = () => {
                 />
               </Box>
               <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                <button style={buttonStyle} onClick={addProfessor} type="submit">Submit</button>
+                <button style={buttonStyle} onClick={addProfessor} type="submit"> 
+                {isEditMode ? 'Update' : 'Submit'}
+                </button>
               </Box>
             </Box>
           </Box>
 
           {/* Right Side  */}
-            <Box width={"25%"} height={{ xs: '80%', sm: '90%', md: '25%' }} style={{ display: 'flex', flexDirection: 'column' }}>
+          <Box width={"25%"} height="100vh" style={{ display: 'flex', flexDirection: 'column' }}>
               <label 
                 style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
                 Element List:
@@ -354,6 +486,7 @@ const Professors = () => {
                     overflow: 'hidden',
                   },
                   "& .MuiDataGrid-cell": {
+                   
                     border: "none",
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
@@ -361,6 +494,7 @@ const Professors = () => {
                   },
                   "& .name-column--cell": {
                     color: '#4CAF50',
+                      
                   },
                   "& .MuiDataGrid-columnHeaders": {
                     backgroundColor: "#d8eaf4",
@@ -384,11 +518,12 @@ const Professors = () => {
                     color: '#ffffff !important',
                   },
                 }}
+                
               />
-              <br />
-              <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+              <Box flex={1}  display="flex" justifyContent="center" alignItems="center">
                 <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">Submit</button>
               </Box>
+               
             </Box>
             </Box>
             </Box>
@@ -441,7 +576,7 @@ const Professors = () => {
         </Box>
         <Box flex={1} sx={{ maxWidth: "30%" }}>
           <DataGrid
-            rows={mockDataContacts}
+            rows={elementsListProfID}
             columns={ElemtAffectation}
             components={{ Toolbar: GridToolbar }}
             initialState={{
