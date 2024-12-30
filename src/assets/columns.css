@@ -1,0 +1,8 @@
+.multilineCell {
+    white-space: normal !important;
+    /* Permet le texte de s'étendre sur plusieurs lignes */
+    word-wrap: break-word !important;
+    /* Coupe les mots trop longs */
+    line-height: 1.5;
+    /* Espacement entre les lignes */
+}

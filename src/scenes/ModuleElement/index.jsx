@@ -6,6 +6,8 @@ import { tokens } from "../../theme";
 import React, { useState, useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import '../../assets/columns.css';
 import axios from "axios";
 const ModuleElement = () => {
 
@@ -23,7 +25,40 @@ const ModuleElement = () => {
     });
 
 
+    const [elementsListModuleID, setElementsListModuleID] = useState([]);
+    const [selectedModuleCode, setSelectedModuleCode] = useState(null);
+    // Fonction pour récupérer les éléments d'un module
+    useEffect(() => {
+        if (!selectedModuleCode) return; // Skip if no module is selected
 
+        axios
+            .get(`http://localhost:8080/api/element/modules/${selectedModuleCode}`)
+            .then((response) => {
+                if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                    const transformedData = response.data.map((elmt) => ({
+                        id: elmt.ElementId,          // Use ElementId from backend
+                        name: elmt.ElementName,      // Use ElementName from backend
+                        codeModule: elmt.CodeModule, // Assuming CodeModule is part of the data
+                        coefficient: elmt.Coefficient, // Add Coefficient to the transformed data
+                        etatElement: elmt.EtatElement, // Add EtatElement to the transformed data
+                    }));
+                    setElementsListModuleID(transformedData); // Update elements list for modules
+                } else {
+                    console.log('No elements found for this module');
+                    setElementsListModuleID([]);
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching elements for module:', error);
+                setElementsListModuleID([]);
+            });
+    }, [selectedModuleCode]); // Re-fetch when selectedModuleCode changes
+    // Re-fetch when selectedModuleCode changes
+
+    const handleFetchElements = (moduleCode) => {
+        console.log('Selected Module Code:', moduleCode);
+        setSelectedModuleCode(moduleCode);  // Set selected module code to trigger useEffect
+    };
 
     const [editingModule, setEditingModule] = useState(null);
 
@@ -78,12 +113,12 @@ const ModuleElement = () => {
             });
 
             if (response.ok) {
+
                 alert("Module ajouté avec succès.");
                 const newModule = await response.json();
-                setModulesList((prevState) => [
-                    ...prevState,
-                    { id: prevState.length + 1, ...newModule },
-                ]);
+                // Ajout du module à la liste existante dans l'état sans faire de nouvelle requête GET
+
+                setModulesList((prevModules) => [...prevModules, newModule]);
                 setModuleData({
                     codeModule: "",
                     nomModule: "",
@@ -174,15 +209,17 @@ const ModuleElement = () => {
 
 
     const columnsModules = [
-        { field: "idModule", headerName: "ID", flex: 0.5 },
-        { field: "codeModule", headerName: "Code", flex: 1 },
-        { field: "nomModule", headerName: "Nom", flex: 1 },
-        { field: "nomSemestre", headerName: "Semestre", flex: 1 },
-        { field: "nomFiliere", headerName: "Filière", flex: 1 },
+        { field: "idModule", headerName: "ID", flex: 0.1 },
+        {
+            field: "codeModule", headerName: "Code", flex: 0.5, cellClassName: "multilineCell"
+        },
+        { field: "nomModule", headerName: "Nom", flex: 0.5, cellClassName: "multilineCell" },
+        { field: "nomSemestre", headerName: "Semestre", flex: 0.3 },
+        { field: "nomFiliere", headerName: "Filière", flex: 0.3 },
         {
             field: "actions",
             headerName: "Actions",
-            flex: 1,
+            flex: 0.5,
             renderCell: (params) => (
                 <>
                     <IconButton
@@ -197,6 +234,16 @@ const ModuleElement = () => {
                     >
                         <DeleteIcon />
                     </IconButton>
+
+
+                    <IconButton
+                        onClick={() => handleFetchElements(params.row.codeModule)}
+                        style={{ color: "black" }}
+                        title="Afficher"
+                    >
+                        <VisibilityIcon />
+                    </IconButton>
+
                 </>
             ),
         },
@@ -204,30 +251,56 @@ const ModuleElement = () => {
 
 
 
-    const ElemtAffectation = [
-        { field: "idElement", headerName: "Element ID", flex: 0.5 },
+    const Elementcolumns = [
+        { field: "id", headerName: "ID", flex: 0.08 },
         {
-            field: "NomElement",
-            headerName: "Element Name",
-            flex: 1,
-            cellClassName: "name-column--cell",
+            field: "name",
+            headerName: "Name",
+            flex: 0.6,
+            cellClassName: "multilineCell"
         },
         {
             field: "coefficient",
             headerName: "coefficient",
-            flex: 1,
+            flex: 0.4,
             cellClassName: "name-column--cell",
         },
         {
             field: "etatElement",
             headerName: "Etat ",
-            flex: 1,
-            cellClassName: "name-column--cell",
+            flex: 0.5,
+            cellClassName: "multilineCell"
         },
         {
-            field: "test",
+            field: "Actions",
             headerName: "Action",
-            flex: 1,
+            flex: 0.9,
+            renderCell: (params) => (
+                <>
+                    <IconButton
+                        onClick={() => handleEdit(params.row)}
+                        style={{ color: "blue", marginRight: "10px" }}
+                    >
+                        <EditIcon />
+                    </IconButton>
+                    <IconButton
+                        onClick={() => handleDelete(params.row.idModule)}
+                        style={{ color: "red" }}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+
+
+                    <IconButton
+                        onClick={() => handleFetchElements(params.row.codeModule)}
+                        style={{ color: "black" }}
+                        title="Afficher"
+                    >
+                        <VisibilityIcon />
+                    </IconButton>
+
+                </>
+            ),
         },
     ];
 
@@ -249,6 +322,7 @@ const ModuleElement = () => {
         outline: 'none',
         fontSize: '1rem',
         boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+        width: '80%',
     };
 
     const buttonStyle = {
@@ -273,186 +347,271 @@ const ModuleElement = () => {
             <Box
                 m="20px"
                 style={{
-                    backgroundColor: '#f9f9f9',
-                    borderRadius: '15px',
-                    padding: '20px',
-                    boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)',
+
+
+
+
+                    display: 'flex', // Alignement horizontal
+                    gap: '20px', // Espacement entre les deux sections
                 }}
             >
-                <Box display="flex" gap="20px" mb="20px">
-                    {/* Partie Gauche */}
-                    <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="codeModule" style={labelStyle}>
-                                    Code Module :
-                                </label>
-                                <input
-                                    type="text"
-                                    style={inputStyle}
-                                    id="codeModule"
-                                    name="codeModule"
-                                    value={moduleData.codeModule}
-                                    onChange={handleChange} />
+                <Box
+                    m="20px"
+                    style={{
+                        backgroundColor: '#f9f9f9',
+                        borderRadius: '15px',
+                        padding: '20px',
+                        boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)',
+                        maxWidth: '800px', // Réduire la largeur
+                        margin: '20px',    // Centrer la boîtes
+
+                    }}
+                >
+                    <Box display="flex" gap="20px" mb="20px">
+                        {/* Partie Gauche */}
+                        <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="codeModule" style={labelStyle}>
+                                        Code Module :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        style={inputStyle}
+                                        id="codeModule"
+                                        name="codeModule"
+                                        value={moduleData.codeModule}
+                                        onChange={handleChange} />
+                                </Box>
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="nomModule" style={labelStyle}>
+                                        Nom du Module :
+                                    </label>
+                                    <input type="text" style={inputStyle}
+                                        id="nomModule"
+                                        name="nomModule"
+                                        value={moduleData.nomModule}
+                                        onChange={handleChange} />
+                                </Box>
                             </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="nomModule" style={labelStyle}>
-                                    Nom du Module :
-                                </label>
-                                <input type="text" style={inputStyle}
-                                    id="nomModule"
-                                    name="nomModule"
-                                    value={moduleData.nomModule}
-                                    onChange={handleChange} />
+
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="nomSemestre" style={labelStyle}>
+                                        Semestre :
+                                    </label>
+                                    <input
+                                        id="nomSemestre"
+                                        style={inputStyle}
+                                        name="nomSemestre"
+                                        value={moduleData.nomSemestre}
+                                        onChange={handleChange}
+                                    >                                </input>
+                                </Box>
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="nomFiliere" style={labelStyle}>
+                                        Filière :
+                                    </label>
+                                    <input
+                                        id="nomFiliere"
+                                        style={inputStyle}
+                                        name="nomFiliere"
+                                        value={moduleData.nomFiliere}
+                                        onChange={handleChange}
+                                    >
+                                    </input>
+                                </Box>
                             </Box>
+
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="elementsNom" style={labelStyle}>
+                                        Noms des Élément (séparés par des virgules) :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="elementsNom"
+                                        name="elementsNom"
+                                        value={moduleData.elementsNom}
+                                        onChange={handleChange}
+                                        style={inputStyle}
+                                    />
+                                </Box>
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="elementsCoeff" style={labelStyle}>
+                                        Coefficients des Élément (séparés par des virgules) :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="elementsCoeff"
+                                        name="elementsCoeff"
+                                        value={moduleData.elementsCoeff}
+                                        onChange={handleChange}
+                                        style={inputStyle}
+                                    />
+                                </Box>
+                            </Box>
+
+
+                            <Box display="flex" gap="20px" justifyContent="center" mt="20px">
+                                <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+                                    <button onClick={editingModule ? handleUpdate : addModule}>
+                                        {editingModule ? "Mettre à jour" : "Ajouter"}
+                                    </button>
+                                </Box>
+                            </Box>
+
                         </Box>
 
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="nomSemestre" style={labelStyle}>
-                                    Semestre :
-                                </label>
-                                <input
-                                    id="nomSemestre"
-                                    style={inputStyle}
-                                    name="nomSemestre"
-                                    value={moduleData.nomSemestre}
-                                    onChange={handleChange}
-                                >                                </input>
-                            </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="nomFiliere" style={labelStyle}>
-                                    Filière :
-                                </label>
-                                <input
-                                    id="nomFiliere"
-                                    style={inputStyle}
-                                    name="nomFiliere"
-                                    value={moduleData.nomFiliere}
-                                    onChange={handleChange}
-                                >
-                                </input>
-                            </Box>
-                        </Box>
-
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="elementsNom" style={labelStyle}>
-                                    Noms des Élément (séparés par des virgules) :
-                                </label>
-                                <input
-                                    type="text"
-                                    id="elementsNom"
-                                    name="elementsNom"
-                                    value={moduleData.elementsNom}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="elementsCoeff" style={labelStyle}>
-                                    Coefficients des Élément (séparés par des virgules) :
-                                </label>
-                                <input
-                                    type="text"
-                                    id="elementsCoeff"
-                                    name="elementsCoeff"
-                                    value={moduleData.elementsCoeff}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                />
-                            </Box>
-                        </Box>
-
-
-                        <Box display="flex" gap="20px" justifyContent="center" mt="20px">
+                        {/* Right Side  */}
+                        <Box width={"25%"} height={{ xs: '90%', sm: '90%', md: '50%' }} style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label
+                                style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
+                                Element List:
+                            </label>
+                            <DataGrid
+                                rows={elementsListModuleID} // Données à afficher
+                                columns={[
+                                    { field: 'nomElement', headerName: 'Nom Élément', flex: 1 },
+                                    { field: 'coefficient', headerName: 'Coefficient', flex: 1 },
+                                ]}
+                                components={{
+                                    Toolbar: () => (
+                                        <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
+                                            <GridToolbarQuickFilter />
+                                        </div>
+                                    ),
+                                }}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: {
+                                            pageSize: 10,
+                                        },
+                                    },
+                                }}
+                                checkboxSelection
+                                sx={{
+                                    "& .MuiDataGrid-root": {
+                                        border: "none",
+                                        height: '500px', // Ajuster la hauteur
+                                        overflow: 'hidden',
+                                    },
+                                    "& .MuiDataGrid-cell": {
+                                        border: "none",
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis',
+                                        overflow: 'hidden',
+                                    },
+                                    "& .name-column--cell": {
+                                        color: '#4CAF50',
+                                    },
+                                    "& .MuiDataGrid-columnHeaders": {
+                                        backgroundColor: "#d8eaf4",
+                                        borderBottom: "none",
+                                    },
+                                    "& .MuiDataGrid-footerContainer": {
+                                        borderTop: "none",
+                                        backgroundColor: "#d8eaf4",
+                                    },
+                                    "& .MuiDataGrid-virtualScroller": {
+                                        backgroundColor: '#e0f7fa',
+                                        overflowY: 'auto',
+                                    },
+                                    "& .MuiCheckbox-root": {
+                                        color: 'black !important',
+                                    },
+                                    "& .MuiDataGrid-iconSeparator": {
+                                        color: '#b2ebf2',
+                                    },
+                                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                                        color: '#ffffff !important',
+                                    },
+                                }}
+                            />
+                            <br />
                             <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                                <button onClick={editingModule ? handleUpdate : addModule}>
-                                    {editingModule ? "Mettre à jour" : "Ajouter"}
+                                <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">
+                                    Submit
                                 </button>
                             </Box>
                         </Box>
 
                     </Box>
+                </Box>
+                <Box
+                    flex={1}
+                    style={{
+                        backgroundColor: '#fff',
+                        borderRadius: '10px',
+                        padding: '20px',
+                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                >
+                    <Box display="flex" flexDirection="column" gap="20px">
+                        <Box display="flex" gap="20px">
+                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label htmlFor="nomElement" style={labelStyle}>
+                                    Nom Élément :
+                                </label>
+                                <input
+                                    type="text"
+                                    id="nomElement"
+                                    name="nomElement"
 
-                    {/* Right Side  */}
-                    <Box width={"25%"} height={{ xs: '80%', sm: '90%', md: '25%' }} style={{ display: 'flex', flexDirection: 'column' }}>
-                        <label
-                            style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
-                            Element List:
-                        </label>
-                        <DataGrid
-                            rows={mockDataContacts} // Données à afficher
-                            columns={[
-                                { field: 'nomElement', headerName: 'Nom Élément', flex: 1 },
-                                { field: 'coefficient', headerName: 'Coefficient', flex: 1 },
-                            ]}
-                            components={{
-                                Toolbar: () => (
-                                    <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
-                                        <GridToolbarQuickFilter />
-                                    </div>
-                                ),
-                            }}
-                            initialState={{
-                                pagination: {
-                                    paginationModel: {
-                                        pageSize: 10,
-                                    },
-                                },
-                            }}
-                            checkboxSelection
-                            sx={{
-                                "& .MuiDataGrid-root": {
-                                    border: "none",
-                                    height: '500px', // Ajuster la hauteur
-                                    overflow: 'hidden',
-                                },
-                                "& .MuiDataGrid-cell": {
-                                    border: "none",
-                                    whiteSpace: 'nowrap',
-                                    textOverflow: 'ellipsis',
-                                    overflow: 'hidden',
-                                },
-                                "& .name-column--cell": {
-                                    color: '#4CAF50',
-                                },
-                                "& .MuiDataGrid-columnHeaders": {
-                                    backgroundColor: "#d8eaf4",
-                                    borderBottom: "none",
-                                },
-                                "& .MuiDataGrid-footerContainer": {
-                                    borderTop: "none",
-                                    backgroundColor: "#d8eaf4",
-                                },
-                                "& .MuiDataGrid-virtualScroller": {
-                                    backgroundColor: '#e0f7fa',
-                                    overflowY: 'auto',
-                                },
-                                "& .MuiCheckbox-root": {
-                                    color: 'black !important',
-                                },
-                                "& .MuiDataGrid-iconSeparator": {
-                                    color: '#b2ebf2',
-                                },
-                                "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                    color: '#ffffff !important',
-                                },
-                            }}
-                        />
-                        <br />
-                        <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                            <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">
-                                Submit
+                                    style={inputStyle}
+                                />
+                            </Box>
+                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label htmlFor="coefficient" style={labelStyle}>
+                                    Coefficient :
+                                </label>
+                                <input
+                                    type="text"
+                                    id="coefficient"
+                                    name="coefficient"
+
+                                    style={inputStyle}
+                                />
+                            </Box>
+                        </Box>
+
+                        <Box display="flex" gap="20px">
+                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label htmlFor="etatElement" style={labelStyle}>
+                                    État Élément :
+                                </label>
+                                <input
+                                    type="text"
+                                    id="etatElement"
+                                    name="etatElement"
+
+                                    style={inputStyle}
+                                />
+                            </Box>
+                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label htmlFor="idProfesseur" style={labelStyle}>
+                                    Professeur ID :
+                                </label>
+                                <input
+                                    type="number"
+                                    id="idProfesseur"
+                                    name="idProfesseur"
+
+                                    style={inputStyle}
+                                />
+                            </Box>
+                        </Box>
+
+                        <Box display="flex" gap="20px" justifyContent="center" mt="20px">
+                            <button style={buttonStyle}>
+                                Ajouter Élément
                             </button>
                         </Box>
                     </Box>
-
                 </Box>
             </Box>
-
             <Box display="flex" gap="20px" height="75vh">
-                <Box flex={1} sx={{ maxWidth: "70%" }}>
+                <Box flex={0.5} sx={{ maxWidth: "45%" }}>
                     <DataGrid
                         rows={modulesList}
                         columns={columnsModules}
@@ -469,6 +628,7 @@ const ModuleElement = () => {
                             "& .MuiDataGrid-root": {
                                 border: "none",
                             },
+
                             "& .MuiDataGrid-cell": {
                                 border: "none",
                             },
@@ -500,8 +660,58 @@ const ModuleElement = () => {
                 </Box>
                 <Box flex={1} sx={{ maxWidth: "30%" }}>
                     <DataGrid
-                        rows={mockDataContacts}
-                        columns={ElemtAffectation}
+                        rows={elementsListModuleID}
+                        columns={Elementcolumns}
+                        components={{ Toolbar: GridToolbar }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                        }}
+                        checkboxSelection
+                        sx={{
+                            "& .MuiDataGrid-root": {
+                                border: "none",
+                            },
+                            "& .MuiDataGrid-cell": {
+                                border: "none",
+                            },
+                            "& .name-column--cell": {
+                                color: colors.primary[100],
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                backgroundColor: "#d8eaf4",
+                                borderBottom: "none",
+                            },
+                            "& .MuiDataGrid-virtualScroller": {
+                                backgroundColor: colors.primary[400],
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: "none",
+                                backgroundColor: "#d8eaf4",
+                            },
+                            "& .MuiCheckbox-root": {
+                                color: `${colors.greenAccent[200]} !important`,
+                            },
+                            "& .MuiDataGrid-iconSeparator": {
+                                color: colors.primary[100],
+                            },
+                            "& .MuiButton-text": {
+                                color: 'black',
+                            },
+                            "& .MuiDataGrid-toolbarContainer": {
+                                color: colors.gray[100],
+                            },
+                        }}
+                    />
+                </Box>
+
+                <Box flex={1} sx={{ maxWidth: "25%" }}>
+                    <DataGrid
+                        rows={elementsListModuleID}
+                        columns={Elementcolumns}
                         components={{ Toolbar: GridToolbar }}
                         initialState={{
                             pagination: {
@@ -548,7 +758,7 @@ const ModuleElement = () => {
                     />
                 </Box>
             </Box>
-        </Box>
+        </Box >
     );
 };
 
