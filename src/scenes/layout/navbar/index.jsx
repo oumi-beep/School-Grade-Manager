@@ -55,7 +55,7 @@ const Navbar = () => {
         <nav className="nav-links">
           <a href="/Dashboard">Dashboard</a>
           <a href="/Dashboard/Professors">Professors</a>
-          <a href="/Dashboard/team">Fields</a>
+          <a href="/Dashboard/Fields">Fields</a>
           <a href="/Dashboard/ModuleElement">Modules and Elements</a>
           <a href="/Dashboard/ModeEvaluation">Evaluation Modalities</a>
           <a href='/Dashboard/invoices' >Acount</a>

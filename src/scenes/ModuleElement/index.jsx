@@ -280,7 +280,7 @@ const ModuleElement = () => {
                 }}
             >
                 <Box display="flex" gap="20px" mb="20px">
-                    {/* Partie Gauche */}
+                    {/* right part */}
                     <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
                         <Box display="flex" gap="20px">
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
