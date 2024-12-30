@@ -9,6 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 
 const Professors = () => {
   const theme = useTheme();
@@ -17,17 +18,16 @@ const Professors = () => {
   const [selectedProfessorCode, setSelectedProfessorCode] = useState(null); 
   const [selectedElements, setSelectedElements] = useState([]);
 
-  //For elemnts tockens affected to a professor
-  useEffect(() => {
-    if (!selectedProfessorCode) return; // Skip if no professor is selected
+  const fetchElementsForProfessor = (professorCode) => {
+    if (!professorCode) return; // Skip if no professor is selected
   
     axios
-      .get(`http://localhost:8080/api/element/elements_professors/${selectedProfessorCode}`)
+      .get(`http://localhost:8080/api/element/elements_professors/${professorCode}`)
       .then((response) => {
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           const transformedData = response.data.map((elmt) => ({
             id: elmt.ElementId, // Use ElementId from backend
-            name: elmt.ElementName, 
+            name: elmt.ElementName,
             CodeProf: elmt.CodeProf,
           }));
           setElementsListProfID(transformedData); // Update elements list
@@ -40,6 +40,10 @@ const Professors = () => {
         console.error('Error fetching elements:', error);
         setElementsListProfID([]);   
       });
+  };
+  //For elemnts tockens affected to a professor
+  useEffect(() => {
+    fetchElementsForProfessor(selectedProfessorCode);
   }, [selectedProfessorCode]); // Re-fetch when selectedProfessorCode changes
   
 
@@ -191,8 +195,7 @@ const Professors = () => {
       });
   }, []);
 
-
-  useEffect(() => {
+  const fetchElements = () => {
     axios
       .get('http://localhost:8080/api/element')
       .then((response) => {
@@ -201,12 +204,16 @@ const Professors = () => {
           ElementID: elmt.ElementID,
           name: elmt.ElementName,
         }));
-        setElementsList(transformedData); 
+        setElementsList(transformedData);
       })
       .catch((error) => {
         console.error('Error fetching elements:', error);
       });
-  }, []); 
+  };
+
+  useEffect(() => {
+    fetchElements(); // Fetch elements initially
+  }, []);
   
   const [data, setElementsList] = useState([]);
   const elemttable = [
@@ -218,6 +225,25 @@ const Professors = () => {
       {
         field: "name", headerName: "Element Name", flex: 1,
          cellClassName: "name-column--cell",
+      },
+      {
+        field: "test",
+        headerName: "Action",
+        flex: 1,
+        renderCell: (params) => {
+          return (
+            <div style={{ display: 'flex', gap: '10px' }}>
+      
+              {/* Delete Button */}
+              <IconButton
+                  style={{ color: 'blue' }}
+                  onClick={() => handleSubmitt( )} 
+                >
+                <AddIcon /> 
+                </IconButton>
+            </div>
+          );
+        },
       },
   ];
   const columnsProf = [
@@ -249,6 +275,7 @@ const Professors = () => {
         return (
           <div style={{ display: 'flex', gap: '10px' }}>
             {/* Modify*/}
+            
             <IconButton   onClick={() => handleEdit(params.row)} style={{ color: 'blue' }}>
             <EditIcon />
             </IconButton>
@@ -283,6 +310,7 @@ const Professors = () => {
   const [editingProfessor, setEditingProfessor] = useState(null);
 
   const handleEdit = (professor) => {
+    handleProfessorSelect(professor.idUser);
     setEditingProfessor(professor);
     setProfessorData({
       professorCode: professor.registrarId,
@@ -301,9 +329,11 @@ const Professors = () => {
       .delete(`http://localhost:8080/api/professors/delete/${idUser}`)
       .then((response) => {
         alert("Professor deleted successfully!");
+      
          setProfessorsList((prevState) =>
           prevState.filter((professor) => professor.idUser !== idUser)
         );
+        
       })
       .catch((error) => {
         console.error("Error deleting professor:", error);
@@ -327,6 +357,7 @@ const Professors = () => {
         setElementsListProfID((prevList) =>
           prevList.filter((elmt) => elmt.id !== id)
         );
+        fetchElements(); // Refresh the elements list
       }else {
         alert('Failed to remove the professor');
       }
@@ -375,11 +406,81 @@ const Professors = () => {
       },
     },
   ];
+  const [selectedProfessorId, setSelectedProfessorId] = useState(null);
+
+  const handleProfessorSelect = (professorId) => {
+    setSelectedProfessorId(professorId);
+    console.log("Selected Professor ID:", professorId); 
+  };
+ 
+  const handleRowClick = (params) => {
+    const selectedRowId = params.row.ElementID; // Get the ID of the clicked row
+    console.log('Selected Row ID:', selectedRowId);
+  
+    // Toggle selection if already selected, else add to selected list
+    setSelectedElements((prevSelected) => {
+        let newSelectedElements;
+        if (prevSelected.includes(selectedRowId)) {
+            // Remove from selected if already selected
+            newSelectedElements = prevSelected.filter((ElementID) => ElementID !== selectedRowId);
+        } else {
+            // Add to selected if not selected
+            newSelectedElements = [...prevSelected, selectedRowId];
+        }
+        
+        // Automatically submit if a new element is selected
+        handleSubmitt(newSelectedElements);
+        
+        return newSelectedElements;
+    });
+};
+
+const handleSubmitt = (newSelectedElements) => {
+    if (!selectedProfessorId) {
+        console.log("No professor selected");
+        return;
+    }
+
+    // Confirm the action before proceeding
+    const isConfirmed = window.confirm("Are you sure you want to assign these elements to the professor?");
+    if (!isConfirmed) {
+        console.log("Affectation canceled.");
+        return; // Stop the function if not confirmed
+    }
+
+    // Send POST request for each selected element
+    newSelectedElements.forEach((elementId) => {
+        const url = `http://localhost:8080/api/professors/${selectedProfessorId}/${elementId}`;
+        console.log('Sending POST request to:', url);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then((response) => {
+            if (response.ok) {
+                console.log(`Element ${elementId} successfully added to Professor ${selectedProfessorId}`);
+                fetchElements();
+                fetchElementsForProfessor(selectedProfessorCode);
+            } else {
+                console.log(`Failed to add element ${elementId} to Professor ${selectedProfessorId}`);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+};
+
+ 
 
 
   
+  
 
-
+  
   return (
     <Box m="20px">
       <Header title="Professors :" subtitle="List of Professors And their affected element" />
@@ -456,14 +557,16 @@ const Professors = () => {
           </Box>
 
           {/* Right Side  */}
-          <Box width={"25%"} height="100vh" style={{ display: 'flex', flexDirection: 'column' }}>
+          <Box width= "25%"  gap="20px"  height={"75vh"}  >
               <label 
                 style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
                 Element List:
               </label>
-              <DataGrid
+              <DataGrid 
                 rows={data}
                 columns={elemttable}
+                selectedProfessorId={selectedProfessorId} 
+                onRowClick={handleRowClick}                 // onRowSelected not needed anymore
                 components={{
                   Toolbar: () => (
                     <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
@@ -478,8 +581,7 @@ const Professors = () => {
                     },
                   },
                 }}
-                checkboxSelection
-                sx={{
+                 sx={{
                   "& .MuiDataGrid-root": {
                     border: "none",
                     height: '500px',  
@@ -519,11 +621,9 @@ const Professors = () => {
                   },
                 }}
                 
-              />
-              <Box flex={1}  display="flex" justifyContent="center" alignItems="center">
-                <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">Submit</button>
-              </Box>
-               
+              />            
+
+
             </Box>
             </Box>
             </Box>
