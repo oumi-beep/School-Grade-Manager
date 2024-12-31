@@ -126,7 +126,7 @@ const ModuleElement = () => {
                     nomFiliere: "",
                     elementsNom: "",
                     elementsCoeff: "",
-                });
+                }); 
             } else {
                 alert("Échec de l'ajout du module.");
             }
@@ -355,46 +355,6 @@ const ModuleElement = () => {
                     gap: '20px', // Espacement entre les deux sections
                 }}
             >
-<<<<<<< HEAD
-                <Box
-                    m="20px"
-                    style={{
-                        backgroundColor: '#f9f9f9',
-                        borderRadius: '15px',
-                        padding: '20px',
-                        boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)',
-                        maxWidth: '800px', // Réduire la largeur
-                        margin: '20px',    // Centrer la boîtes
-
-                    }}
-                >
-                    <Box display="flex" gap="20px" mb="20px">
-                        {/* Partie Gauche */}
-                        <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
-                            <Box display="flex" gap="20px">
-                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <label htmlFor="codeModule" style={labelStyle}>
-                                        Code Module :
-                                    </label>
-                                    <input
-                                        type="text"
-                                        style={inputStyle}
-                                        id="codeModule"
-                                        name="codeModule"
-                                        value={moduleData.codeModule}
-                                        onChange={handleChange} />
-                                </Box>
-                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <label htmlFor="nomModule" style={labelStyle}>
-                                        Nom du Module :
-                                    </label>
-                                    <input type="text" style={inputStyle}
-                                        id="nomModule"
-                                        name="nomModule"
-                                        value={moduleData.nomModule}
-                                        onChange={handleChange} />
-                                </Box>
-=======
                 <Box display="flex" gap="20px" mb="20px">
                     {/* right part */}
                     <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
@@ -410,7 +370,6 @@ const ModuleElement = () => {
                                     name="codeModule"
                                     value={moduleData.codeModule}
                                     onChange={handleChange} />
->>>>>>> d7d2796d4d0266029cc8eb62d54e614f35750225
                             </Box>
 
                             <Box display="flex" gap="20px">
