@@ -1,25 +1,20 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vitejs.dev/config/
+// Configuration Vite
 export default defineConfig({
   plugins: [react()],
+
   server: {
-<<<<<<< HEAD
+    // Port sur lequel Vite servira l'application frontend
     port: 5173,
-=======
-    port: 5173, 
->>>>>>> d7d2796d4d0266029cc8eb62d54e614f35750225
+
+    // Configuration du proxy pour rediriger les requêtes API vers le backend
     proxy: {
-      "/api": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
+      '/api': {
+        target: 'http://localhost:8080',  // URL de votre serveur backend
+        changeOrigin: true,               // Modifie l'origine de la requête pour le backend
       },
     },
   },
-<<<<<<< HEAD
-})
-=======
-})
->>>>>>> d7d2796d4d0266029cc8eb62d54e614f35750225
+});

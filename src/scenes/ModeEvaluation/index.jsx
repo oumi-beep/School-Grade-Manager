@@ -17,6 +17,9 @@ const ModesEvaluation = () => {
         coefficient: "",
     });
 
+
+
+
     const [editingMode, setEditingMode] = useState(null); // Etat pour savoir si on modifie une ligne
 
     const handleChange = (e) => {

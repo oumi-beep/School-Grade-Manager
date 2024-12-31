@@ -25,6 +25,29 @@ const ModuleElement = () => {
     });
 
 
+    // LES DONNEES SEMESTRE ET FILIERE 
+    const [semestres, setSemestres] = useState([]);
+    const [filieres, setFilieres] = useState([]);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Récupération des semestres
+                const semestresResponse = await fetch('http://localhost:8080/api/semestres');
+                const semestresData = await semestresResponse.json();
+                setSemestres(semestresData);
+
+                // Récupération des filières
+                const filieresResponse = await fetch('http://localhost:8080/api/filieres');
+                const filieresData = await filieresResponse.json();
+                setFilieres(filieresData);
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données :', error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
     const [elementsListModuleID, setElementsListModuleID] = useState([]);
     const [selectedModuleCode, setSelectedModuleCode] = useState(null);
     // Fonction pour récupérer les éléments d'un module
@@ -41,6 +64,7 @@ const ModuleElement = () => {
                         codeModule: elmt.CodeModule, // Assuming CodeModule is part of the data
                         coefficient: elmt.Coefficient, // Add Coefficient to the transformed data
                         etatElement: elmt.EtatElement, // Add EtatElement to the transformed data
+                        nomProfesseur: elmt.NomProfesseur
                     }));
                     setElementsListModuleID(transformedData); // Update elements list for modules
                 } else {
@@ -60,15 +84,15 @@ const ModuleElement = () => {
         setSelectedModuleCode(moduleCode);  // Set selected module code to trigger useEffect
     };
 
-    const [editingModule, setEditingModule] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setModuleData((prevState) => ({
-            ...prevState,
+        setModuleData((prevData) => ({
+            ...prevData,
             [name]: value,
         }));
     };
+
 
     const addModule = async (e) => {
         e.preventDefault();
@@ -115,10 +139,9 @@ const ModuleElement = () => {
             if (response.ok) {
 
                 alert("Module ajouté avec succès.");
-                const newModule = await response.json();
+                fetchAffi()
                 // Ajout du module à la liste existante dans l'état sans faire de nouvelle requête GET
 
-                setModulesList((prevModules) => [...prevModules, newModule]);
                 setModuleData({
                     codeModule: "",
                     nomModule: "",
@@ -135,50 +158,81 @@ const ModuleElement = () => {
         }
     };
 
+    const [editingModule, setEditingModule] = useState(false);
+    const handleEdit = async (module) => {
+        setEditingModule(true);
 
-
-    const handleEdit = (module) => {
+        // Initialiser le formulaire avec les données du module de base
         setModuleData({
+            idModule: module.idModule,
             codeModule: module.codeModule,
             nomModule: module.nomModule,
-            nomFiliere: module.nomFiliere,
             nomSemestre: module.nomSemestre,
+            nomFiliere: module.nomFiliere,
+            elementsNom: "", // Temporarily empty
+            elementsCoeff: "", // Temporarily empty
         });
-        setEditingModule(module.idModule);
+
+        try {
+            // Récupérer les éléments associés à ce module depuis l'API
+            const response = await fetch(`http://localhost:8080/api/element/modules/${module.codeModule}`);
+            const data = await response.json();
+
+            if (Array.isArray(data)) {
+                // Remplir les données des éléments
+                setModuleData((prevData) => ({
+                    ...prevData,
+                    elementsNom: data.map((e) => e.ElementName).join(","),
+                    elementsCoeff: data.map((e) => e.Coefficient).join(","),
+                }));
+            } else {
+                console.error("Aucun élément trouvé pour ce module.");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération des éléments :", error);
+        }
     };
 
-    const handleUpdate = async (e) => {
-        e.preventDefault();
-        if (!moduleData.codeModule || !moduleData.nomModule || !moduleData.nomFiliere || !moduleData.nomSemestre) {
-            alert("Veuillez remplir tous les champs.");
-            return;
-        }
 
-        const response = await fetch(`http://localhost:8080/api/modules/update/${editingModule}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-                codeModule: moduleData.codeModule,
-                nomModule: moduleData.nomModule,
-                filiere: moduleData.nomFiliere,
-                semestre: moduleData.nomSemestre,
-            }),
-        });
+    const handleUpdate = async () => {
+        try {
+            const elementsNomArray = moduleData.elementsNom.split(',');
+            const elementsCoeffArray = moduleData.elementsCoeff.split(',').map(Number);
 
-        if (response.ok) {
-            alert("Module mis à jour avec succès.");
-            const updatedModule = await response.json();
-            setModulesList((prevState) =>
-                prevState.map((module) =>
-                    module.idModule === editingModule ? { ...module, ...updatedModule } : module
-                )
-            );
-            setModuleData({ codeModule: "", nomModule: "", nomFiliere: "", nomSemestre: "" });
-            setEditingModule(null);
-        } else {
-            alert("Échec de la mise à jour du module.");
+            const response = await fetch(`http://localhost:8080/api/modules/update/${moduleData.idModule}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    codeModule: moduleData.codeModule,
+                    nomModule: moduleData.nomModule,
+                    nomSemestre: moduleData.nomSemestre,
+                    nomFiliere: moduleData.nomFiliere,
+                    elementsNom: elementsNomArray,
+                    elementsCoeff: elementsCoeffArray,
+                }),
+            });
+
+            if (response.status === 200) {
+                alert("Modalité mise à jour avec succès.");
+                // Réinitialiser le formulaire et recharger les modules
+                setEditingModule(false);
+                setModuleData({
+                    idModule: '',
+                    codeModule: '',
+                    nomModule: '',
+                    nomSemestre: '',
+                    nomFiliere: '',
+                    elementsNom: '',
+                    elementsCoeff: '',
+                });
+                fetchAffi()
+            } else {
+                console.error('Erreur lors de la mise à jour du module :', response);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du module :', error);
         }
     };
 
@@ -193,7 +247,7 @@ const ModuleElement = () => {
             })
             .catch((error) => console.error("Erreur lors de la suppression :", error));
     };
-    useEffect(() => {
+    const fetchAffi = () => {
         axios
             .get("http://localhost:8080/api/modules")
             .then((response) => {
@@ -204,6 +258,10 @@ const ModuleElement = () => {
                 setModulesList(transformedData);
             })
             .catch((error) => console.error("Erreur lors de la récupération :", error));
+    };
+
+    useEffect(() => {
+        fetchAffi(); // Appel de la fonction
     }, []);
 
 
@@ -256,6 +314,12 @@ const ModuleElement = () => {
         {
             field: "name",
             headerName: "Name",
+            flex: 0.6,
+            cellClassName: "multilineCell"
+        },
+        {
+            field: "nomProfesseur",
+            headerName: "Professeur",
             flex: 0.6,
             cellClassName: "multilineCell"
         },
@@ -347,15 +411,9 @@ const ModuleElement = () => {
             <Box
                 m="20px"
                 style={{
-
-
-
-
                     display: 'flex', // Alignement horizontal
-                    gap: '20px', // Espacement entre les deux sections
                 }}
             >
-<<<<<<< HEAD
                 <Box
                     m="20px"
                     style={{
@@ -394,23 +452,6 @@ const ModuleElement = () => {
                                         value={moduleData.nomModule}
                                         onChange={handleChange} />
                                 </Box>
-=======
-                <Box display="flex" gap="20px" mb="20px">
-                    {/* right part */}
-                    <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="codeModule" style={labelStyle}>
-                                    Code Module :
-                                </label>
-                                <input
-                                    type="text"
-                                    style={inputStyle}
-                                    id="codeModule"
-                                    name="codeModule"
-                                    value={moduleData.codeModule}
-                                    onChange={handleChange} />
->>>>>>> d7d2796d4d0266029cc8eb62d54e614f35750225
                             </Box>
 
                             <Box display="flex" gap="20px">
@@ -418,26 +459,35 @@ const ModuleElement = () => {
                                     <label htmlFor="nomSemestre" style={labelStyle}>
                                         Semestre :
                                     </label>
-                                    <input
+                                    <select
                                         id="nomSemestre"
                                         style={inputStyle}
                                         name="nomSemestre"
                                         value={moduleData.nomSemestre}
                                         onChange={handleChange}
-                                    >                                </input>
+                                    >
+                                        <option value="">Sélectionner un semestre</option>
+                                        {semestres.map((semestre, index) => (
+                                            <option key={index} value={semestre.id}>{semestre.nomSemestre}</option>
+                                        ))}
+                                    </select>
                                 </Box>
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="nomFiliere" style={labelStyle}>
                                         Filière :
                                     </label>
-                                    <input
+                                    <select
                                         id="nomFiliere"
                                         style={inputStyle}
                                         name="nomFiliere"
                                         value={moduleData.nomFiliere}
                                         onChange={handleChange}
                                     >
-                                    </input>
+                                        <option value="">Sélectionner une filière</option>
+                                        {filieres.map((filiere, index) => (
+                                            <option key={index} value={filiere.id}>{filiere.nomFiliere}</option>
+                                        ))}
+                                    </select>
                                 </Box>
                             </Box>
 
@@ -482,77 +532,7 @@ const ModuleElement = () => {
                         </Box>
 
                         {/* Right Side  */}
-                        <Box width={"25%"} height={{ xs: '90%', sm: '90%', md: '50%' }} style={{ display: 'flex', flexDirection: 'column' }}>
-                            <label
-                                style={{ ...labelStyle, fontWeight: 'bold', marginBottom: '2px', fontSize: '1.2rem', color: '#2196F3' }}>
-                                Element List:
-                            </label>
-                            <DataGrid
-                                rows={elementsListModuleID} // Données à afficher
-                                columns={[
-                                    { field: 'nomElement', headerName: 'Nom Élément', flex: 1 },
-                                    { field: 'coefficient', headerName: 'Coefficient', flex: 1 },
-                                ]}
-                                components={{
-                                    Toolbar: () => (
-                                        <div style={{ padding: '0.5rem', backgroundColor: 'transparent' }}>
-                                            <GridToolbarQuickFilter />
-                                        </div>
-                                    ),
-                                }}
-                                initialState={{
-                                    pagination: {
-                                        paginationModel: {
-                                            pageSize: 10,
-                                        },
-                                    },
-                                }}
-                                checkboxSelection
-                                sx={{
-                                    "& .MuiDataGrid-root": {
-                                        border: "none",
-                                        height: '500px', // Ajuster la hauteur
-                                        overflow: 'hidden',
-                                    },
-                                    "& .MuiDataGrid-cell": {
-                                        border: "none",
-                                        whiteSpace: 'nowrap',
-                                        textOverflow: 'ellipsis',
-                                        overflow: 'hidden',
-                                    },
-                                    "& .name-column--cell": {
-                                        color: '#4CAF50',
-                                    },
-                                    "& .MuiDataGrid-columnHeaders": {
-                                        backgroundColor: "#d8eaf4",
-                                        borderBottom: "none",
-                                    },
-                                    "& .MuiDataGrid-footerContainer": {
-                                        borderTop: "none",
-                                        backgroundColor: "#d8eaf4",
-                                    },
-                                    "& .MuiDataGrid-virtualScroller": {
-                                        backgroundColor: '#e0f7fa',
-                                        overflowY: 'auto',
-                                    },
-                                    "& .MuiCheckbox-root": {
-                                        color: 'black !important',
-                                    },
-                                    "& .MuiDataGrid-iconSeparator": {
-                                        color: '#b2ebf2',
-                                    },
-                                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                        color: '#ffffff !important',
-                                    },
-                                }}
-                            />
-                            <br />
-                            <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                                <button style={{ ...buttonStyle, color: '#fff', padding: '10px 15px', fontSize: '1rem', borderRadius: '5px' }} type="submit">
-                                    Submit
-                                </button>
-                            </Box>
-                        </Box>
+
 
                     </Box>
                 </Box>
