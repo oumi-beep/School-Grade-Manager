@@ -1,7 +1,6 @@
 import { Box, useTheme } from "@mui/material";
 import { Header } from "../../components";
 import { DataGrid, GridToolbar, GridToolbarQuickFilter } from "@mui/x-data-grid";
-import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -145,6 +144,7 @@ const Professors = () => {
   
     if (response.ok) {
       alert(isEditMode ? 'Professor updated successfully' : 'Professor added successfully');
+      fetchProfessorsData(); // Refresh the professors list
        const newProfessor = {
         id: professorsList.length + 1,
         idUser: isEditMode ? editingProfessor.idUser : professorsList.length + 1,
@@ -176,24 +176,32 @@ const Professors = () => {
     }
   };
   
+  const fetchProfessorsData = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/professors');
+      const transformedData = response.data.map((prof, index) => ({
+        id: index + 1,
+        idUser: prof.UserId,
+        registrarId: prof.CodeProf,
+        name: `${prof.FirstName} ${prof.LastName}`,
+        specialty: prof.Specialite,
+        email: prof.Email,
+      }));
+      return transformedData;
+    } catch (error) {
+      console.error('Error fetching professors:', error);
+      return []; // Return an empty array in case of an error
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get('http://localhost:8080/api/professors')
-      .then((response) => {
-        const transformedData = response.data.map((prof, index) => ({
-          id: index + 1,
-          idUser: prof.UserId,
-          registrarId: prof.CodeProf,
-          name: `${prof.FirstName} ${prof.LastName}`,
-          specialty: prof.Specialite,
-          email: prof.Email,
-        }));
-        setProfessorsList(transformedData);
-      })
-      .catch((error) => {
-        console.error('Error fetching professors:', error);
-      });
+    const fetchAndSetProfessors = async () => {
+      const professorsData = await fetchProfessorsData();
+      setProfessorsList(professorsData);
+    };
+    fetchAndSetProfessors();
   }, []);
+
 
   const fetchElements = () => {
     axios
@@ -437,6 +445,7 @@ const Professors = () => {
 
 const handleSubmitt = (newSelectedElements) => {
     if (!selectedProfessorId) {
+      alert("Please select a professor to assign the elements to.");
         console.log("No professor selected");
         return;
     }

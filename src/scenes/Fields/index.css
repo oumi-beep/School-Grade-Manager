@@ -1,0 +1,99 @@
+.filieres-containerr {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.h1 {
+  text-align: center;
+  color: #333;
+  font-family: 'Roboto', sans-serif;
+  font-size: 30px; 
+}
+
+.filieres-listt {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.filiere-itemm {
+  display: flex;
+  flex-direction: column;
+  height: 100%;  
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;  
+}
+
+.filiere-itemm:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.h6 {
+  font-size: 1.25rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.typography-body2 {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  margin-top: auto; 
+}
+  
+ 
+.buttons .MuiIconButton-root svg {
+  font-size: 1.5rem;
+  color: aquamarine;
+}
+
+.typography-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;  
+  color:  #333;  
+  text-align: center;  
+  margin-bottom: 20px;  
+}
+
+.typography-subtext {
+  font-family: 'Roboto', sans-serif;
+  font-size: 30px; 
+  color: #333;  
+  text-align: center;  
+}
+
+@media (max-width: 768px) {
+  .filiere-itemm {
+    padding: 15px;  
+  }
+
+  .h6 {
+    font-size: 1.125rem;
+  }
+
+  .typography-body2 {
+    font-size: 0.9rem;
+  }
+
+  .buttons .MuiIconButton-root svg {
+    font-size: 1.25rem;  
+  }
+}
