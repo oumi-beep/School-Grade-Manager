@@ -97,3 +97,117 @@
     font-size: 1.25rem;  
   }
 }
+
+
+.containerr {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px; /* Increased the width from 400px to 600px */
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.containerr h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.containerr ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.containerr ul li {
+  display: inline-block;
+}
+
+.containerr button {
+  padding: 10px 20px;
+  background-color:   aquamarine;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.containerr button:hover {
+  background-color: #ddd;
+  color: #333;
+}
+
+table {
+  width: 100%; /* Full width */
+  border-collapse: collapse; /* Merge borders for cleaner look */
+  margin: 20px 0; /* Add spacing around the table */
+  font-size: 13px; /* Adjust font size */
+  text-align: left; /* Align text to the left */
+}
+
+th, td {
+  padding: 12px 15px; /* Add padding for cells */
+  border: 0px solid antiquewhite; /* Add border */
+}
+
+thead {
+  background-color: #eef5f9; /* Light background for the header */
+  color: #333; /* Darker text for contrast */
+  font-weight: bold; /* Bold text for headers */
+}
+
+tbody tr:nth-child(even) {
+   background-color: #f9f9f9; /* Alternate row coloring */
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
+}
+
+th {
+  text-transform: uppercase; /* Make header text uppercase */
+}
+
+
+
+
+.main-article {
+  display: flex;
+  gap: 20px;
+}
+
+.aside-section {
+  flex: 1;
+  min-width: 250px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.main-section {
+  flex: 2;
+  min-width: 400px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.containerr {
+  margin-bottom: 20px;
+}
+
+.containerr h3 {
+  margin-bottom: 10px;
+}
+ 
