@@ -1,0 +1,86 @@
+$primary-color: #212529;
+$secondary-color: #6c757d;
+$background-color: #f8f9fa;
+$text-color: #212529;
+$hover-color: #6c757d;
+$border-radius: 8px;
+$transition-speed: 0.3s;
+
+.semesterss-container {
+  padding: 20px;
+  background-color: $background-color;
+  color: $text-color;
+  font-family: Arial, sans-serif;
+  border-radius: $border-radius;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  display: flex; /* Makes the container a flexbox */
+  flex-direction: column; /* Arranges content vertically */
+  align-items: center; /* Centers the content horizontally */
+  justify-content: center; /* Centers the content vertically */
+  height: 100vh; /* Ensures the container takes full height of the viewport */
+
+  h1, h2 {
+    margin-bottom: 20px;
+    color: $primary-color;
+    text-align: center;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    display: flex; /* Makes the list a flex container */
+    align-items: center; /* Centers the list items horizontally */
+    flex-wrap: wrap; /* Allows items to wrap if necessary */
+    gap: 15px; /* Adds space between the items */
+    justify-content: center; /* Centers the list items within the container */
+
+    li {
+      text-align: center; /* Centers the text inside each list item */
+
+      button {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: $primary-color;
+        color: #fff;
+        border: none;
+        border-radius: $border-radius;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color $transition-speed ease-in-out;
+
+        &:hover {
+          background-color: $hover-color;
+        }
+      }
+
+      p {
+        margin: 5px 0;
+        color: $secondary-color;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .loadingg {
+    color: $secondary-color;
+    font-size: 18px;
+    font-style: italic;
+    margin: 20px 0;
+  }
+
+  .errorr {
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 20px 0;
+  }
+
+  .filiere-container, .element-container {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

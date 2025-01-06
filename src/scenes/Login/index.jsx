@@ -25,23 +25,36 @@ const Login = () => {
         password,
       });
 
-      if (response.status === 200) {
-        alert("Login successful!");
-        navigate("/Dashboard");
-      }
+      // Extract user details from the response
+      const { role, id, name, dashboard } = response.data;
 
+      // Store user details in local storage
+      localStorage.setItem("userRole", role);
+      localStorage.setItem("userId", id);
+      localStorage.setItem("userName", name);
+
+      // Navigate to the appropriate dashboard based on the role
+      if (role === "Professor") {
+        navigate(dashboard || "/ProfessorsSide");
+      } else if (role === "Admin") {
+        navigate(dashboard || "/Dashboard");
+      } else {
+        alert("Unknown role");
+      }
     } catch (error) {
       console.error("Login error:", error);
+
       if (error.response) {
+        //server errors
         if (error.response.status === 401) {
           setErrorMessage("Invalid email or password.");
         } else {
           setErrorMessage("An error occurred. Please try again.");
         }
       } else if (error.request) {
+        //where the server doesn't respond
         setErrorMessage("No response from the server. Please check your connection.");
       } else {
-        // General error (e.g., issue with setting up the request)
         setErrorMessage("Network error. Please try again later.");
       }
     }
@@ -59,7 +72,7 @@ const Login = () => {
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
-                type="text"
+                type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

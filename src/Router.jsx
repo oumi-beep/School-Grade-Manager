@@ -17,12 +17,14 @@ import {
   HomePage,
   Login,
   ModuleElement,
-  ModeEvaluation
-  
+  ModeEvaluation 
 } from "./scenes";
+
+import Starts from "./scenes/Starts";
+import ProfessorsSide from "./scenes/ProfessorsSide";
 import Professors from "./scenes/Professors";
 import Fields from "./scenes/Fields";
-
+ 
 const AppRouter = () => {
   return (
     <Router>
@@ -46,7 +48,13 @@ const AppRouter = () => {
           <Route path="/Dashboard/line" element={<Line />} />
           <Route path="/Dashboard/faq" element={<FAQ />} />
           <Route path="/Dashboard/geography" element={<Geography />} />
-        </Route>
+]        </Route>
+
+          {/* Espace Professeur*/}
+          <Route path="/ProfessorsSide" element={<App />} >
+            <Route path="" element={<ProfessorsSide />} />
+            <Route path="/ProfessorsSide/notes" element={<Starts />} />
+          </Route>
       </Routes>
     </Router>
   );
