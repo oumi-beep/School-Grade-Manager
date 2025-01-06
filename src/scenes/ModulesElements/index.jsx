@@ -1,7 +1,6 @@
 import { Box, useTheme, IconButton } from "@mui/material";
 import { Header } from "../../components";
 import { DataGrid, GridToolbar, GridToolbarQuickFilter } from "@mui/x-data-grid";
-import { mockDataContacts } from "../../data/mockData";
 import { tokens } from "../../theme";
 import React, { useState, useEffect } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -16,6 +15,7 @@ const ModuleElement = () => {
 
     const [modulesList, setModulesList] = useState([]);
     const [moduleData, setModuleData] = useState({
+        idModule: null,
         codeModule: "",
         nomModule: "",
         nomSemestre: "",
@@ -24,6 +24,83 @@ const ModuleElement = () => {
         elementsCoeff: "",
     });
 
+
+    const [elementData, setElementData] = useState({
+        elementId: "",
+        elementName: "",
+        coefficient: "",
+        etatElement: "",
+        professeurNom: "",
+        professeurPrenom: "",
+        modesNoms: "",
+        modesCoefficients: "",
+        professeurNomComplet: "Saadi Mostafa",
+    });
+
+
+
+    const [professeurs, setProfesseurs] = useState([]);
+
+    useEffect(() => {
+        const fetchProfessors = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/professors');
+                setProfesseurs(response.data);
+            } catch (error) {
+                console.error('Erreur lors du chargement des professeurs :', error);
+            }
+        };
+
+        fetchProfessors();
+    }, []);
+
+    const handleChangeElement = (e) => {
+        const { name, value } = e.target;
+        setElementData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleSaveElement = async () => {
+        const modesNomArray = elementData.modesNoms.split(",").map((nom) => nom.trim());
+        const modesCoeffArray = elementData.modesCoefficients.split(",").map((coeff) => parseFloat(coeff));
+
+        const updatedElement = {
+            elementId: elementData.elementId,
+            elementName: elementData.elementName,
+            coefficient: elementData.coefficient,
+            etatElement: elementData.etatElement,
+            professeurNom: elementData.professeurNom,
+            professeurPrenom: elementData.professeurPrenom,
+            modesNoms: modesNomArray,
+            modesCoefficients: modesCoeffArray,
+        };
+
+        try {
+            await axios.put(`http://localhost:8080/api/element/${elementData.elementId}`, updatedElement);
+            alert("Élément mis à jour avec succès !");
+
+
+            // Réinitialisation des champs
+            setElementData({
+                elementId: "",
+                elementName: "",
+                coefficient: "",
+                etatElement: "",
+                professeurNom: "",
+                professeurPrenom: "",
+                modesNoms: "",
+                modesCoefficients: "",
+            });
+
+
+
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour de l'élément :", error);
+            alert("Erreur lors de la mise à jour de l'élément.");
+        }
+    };
 
     // LES DONNEES SEMESTRE ET FILIERE 
     const [semestres, setSemestres] = useState([]);
@@ -48,41 +125,118 @@ const ModuleElement = () => {
         fetchData();
     }, []);
 
-    const [elementsListModuleID, setElementsListModuleID] = useState([]);
-    const [selectedModuleCode, setSelectedModuleCode] = useState(null);
-    // Fonction pour récupérer les éléments d'un module
-    useEffect(() => {
-        if (!selectedModuleCode) return; // Skip if no module is selected
+
+    const handleSave = () => {
+        // Transformer les chaînes de noms et coefficients en listes
+        const elementsNomArray = moduleData.elementsNom.split(",").map((nom) => nom.trim());
+        const elementsCoeffArray = moduleData.elementsCoeff.split(",").map((coeff) => parseFloat(coeff));
+
+        const updatedModule = {
+            idModule: moduleData.idModule,
+            codeModule: moduleData.codeModule,
+            nomModule: moduleData.nomModule,
+            nomSemestre: moduleData.nomSemestre,
+            nomFiliere: moduleData.nomFiliere,
+            elementsNom: elementsNomArray,
+            elementsCoeff: elementsCoeffArray,
+        };
 
         axios
-            .get(`http://localhost:8080/api/element/modules/${selectedModuleCode}`)
-            .then((response) => {
-                if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                    const transformedData = response.data.map((elmt) => ({
-                        id: elmt.ElementId,          // Use ElementId from backend
-                        name: elmt.ElementName,      // Use ElementName from backend
-                        codeModule: elmt.CodeModule, // Assuming CodeModule is part of the data
-                        coefficient: elmt.Coefficient, // Add Coefficient to the transformed data
-                        etatElement: elmt.EtatElement, // Add EtatElement to the transformed data
-                        nomProfesseur: elmt.NomProfesseur
-                    }));
-                    setElementsListModuleID(transformedData); // Update elements list for modules
-                } else {
-                    console.log('No elements found for this module');
-                    setElementsListModuleID([]);
-                }
-            })
-            .catch((error) => {
-                console.error('Error fetching elements for module:', error);
-                setElementsListModuleID([]);
-            });
-    }, [selectedModuleCode]); // Re-fetch when selectedModuleCode changes
-    // Re-fetch when selectedModuleCode changes
+            .put(`http://localhost:8080/api/modules/${moduleData.idModule}`, updatedModule)
+            .then(() => {
+                alert("Module mis à jour avec succès !");
+                setEditingMode(null);
+                fetchAffi()
+                // Ajout du module à la liste existante dans l'état sans faire de nouvelle requête GET
 
-    const handleFetchElements = (moduleCode) => {
-        console.log('Selected Module Code:', moduleCode);
-        setSelectedModuleCode(moduleCode);  // Set selected module code to trigger useEffect
+                setModuleData({
+                    codeModule: "",
+                    nomModule: "",
+                    nomSemestre: "",
+                    nomFiliere: "",
+                    elementsNom: "",
+                    elementsCoeff: "",
+                });
+
+
+            })
+
+            .catch((error) => {
+                console.error(error);
+                alert("Erreur lors de la mise à jour du module.");
+            });
     };
+    const [editingMode, setEditingMode] = useState(false);
+    const fetchElementDetails = async (element) => {
+        try {
+            // Appel à l'API pour récupérer les éléments associés au module
+            const response = await fetch(`http://localhost:8080/api/element/modes/${element.elementId}`);
+            if (!response.ok) {
+                throw new Error("Erreur lors de la récupération des éléments.");
+            }
+
+            const modes = await response.json();
+
+
+
+            // Préparer les données des éléments pour les afficher dans le formulaire
+            const modesNom = modes.map(mode => mode.nomMode).join(', ');
+            const modesCoeff = modes.map(mode => mode.coefficient).join(', ');
+
+            // Vérifier et découper professeurNomComplet
+            const [profFirstName, profLastName] = element.professeurNom.split(" ");
+
+            // Mettre à jour les données de l'élément
+            setElementData({
+                elementId: element.elementId,
+                elementName: element.elementName,
+                coefficient: element.coefficient,
+                etatElement: element.etatElement,
+                modesNoms: modesNom,
+                modesCoefficients: modesCoeff,
+                professeurNom: profLastName,
+                professeurPrenom: profFirstName,
+            });
+        } catch (error) {
+            console.error("Erreur lors de la récupération des détails de l'élément :", error);
+            alert("Erreur lors de la récupération des détails de l'élément.");
+        }
+    };
+
+    const handleEdit = async (module) => {
+        try {
+            // Appel à l'API pour récupérer les éléments associés au module
+            const response = await fetch(`http://localhost:8080/api/element/module/${module.idModule}`); // Remplacez par l'URL correcte de votre API
+            if (!response.ok) {
+                throw new Error("Erreur lors de la récupération des éléments.");
+            }
+
+            const elements = await response.json();
+
+            // Préparer les données des éléments pour les afficher dans le formulaire
+            const elementsNom = elements.map(element => element.ElementName).join(', ');
+            const elementsCoeff = elements.map(element => element.Coefficient).join(', ');
+
+            // Mettre à jour les données du formulaire avec les informations du module et des éléments
+            setModuleData({
+                idModule: module.idModule,
+                codeModule: module.codeModule,
+                nomModule: module.nomModule,
+                nomSemestre: module.nomSemestre,
+                nomFiliere: module.nomFiliere,
+                elementsNom: elementsNom,
+                elementsCoeff: elementsCoeff,
+            });
+            setEditingMode(true);
+
+
+
+            // Optionnel : Charger d'autres données (semestres, filières, etc.) si nécessaire
+        } catch (error) {
+            console.error("Erreur lors de la gestion de l'édition :", error);
+        }
+    };
+
 
 
     const handleChange = (e) => {
@@ -92,21 +246,7 @@ const ModuleElement = () => {
             [name]: value,
         }));
     };
-    const handleDeleteElement = async (id) => {
-        if (window.confirm("Are you sure you want to delete this element?")) {
-            try {
-                const response = await axios.delete(
-                    `http://localhost:8080/api/element/deleteelemnt/${id}`
-                );
-                alert(response.data);
-                // Refresh elements after deletion
 
-            } catch (error) {
-                console.error("Error deleting element:", error);
-                alert("Failed to delete element. Please try again.");
-            }
-        }
-    };
 
     const addModule = async (e) => {
         e.preventDefault();
@@ -164,6 +304,7 @@ const ModuleElement = () => {
                     elementsNom: "",
                     elementsCoeff: "",
                 });
+
             } else {
                 alert("Échec de l'ajout du module.");
             }
@@ -172,83 +313,10 @@ const ModuleElement = () => {
         }
     };
 
-    const [editingModule, setEditingModule] = useState(false);
-    const handleEdit = async (module) => {
-        setEditingModule(true);
-
-        // Initialiser le formulaire avec les données du module de base
-        setModuleData({
-            idModule: module.idModule,
-            codeModule: module.codeModule,
-            nomModule: module.nomModule,
-            nomSemestre: module.nomSemestre,
-            nomFiliere: module.nomFiliere,
-            elementsNom: "", // Temporarily empty
-            elementsCoeff: "", // Temporarily empty
-        });
-
-        try {
-            // Récupérer les éléments associés à ce module depuis l'API
-            const response = await fetch(`http://localhost:8080/api/element/modules/${module.codeModule}`);
-            const data = await response.json();
-
-            if (Array.isArray(data)) {
-                // Remplir les données des éléments
-                setModuleData((prevData) => ({
-                    ...prevData,
-                    elementsNom: data.map((e) => e.ElementName).join(","),
-                    elementsCoeff: data.map((e) => e.Coefficient).join(","),
-                }));
-            } else {
-                console.error("Aucun élément trouvé pour ce module.");
-            }
-        } catch (error) {
-            console.error("Erreur lors de la récupération des éléments :", error);
-        }
-    };
 
 
-    const handleUpdate = async () => {
-        try {
-            const elementsNomArray = moduleData.elementsNom.split(',');
-            const elementsCoeffArray = moduleData.elementsCoeff.split(',').map(Number);
 
-            const response = await fetch(`http://localhost:8080/api/modules/update/${moduleData.idModule}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                    codeModule: moduleData.codeModule,
-                    nomModule: moduleData.nomModule,
-                    nomSemestre: moduleData.nomSemestre,
-                    nomFiliere: moduleData.nomFiliere,
-                    elementsNom: elementsNomArray,
-                    elementsCoeff: elementsCoeffArray,
-                }),
-            });
 
-            if (response.status === 200) {
-                alert("Module mise à jour avec succès.");
-                // Réinitialiser le formulaire et recharger les modules
-                setEditingModule(false);
-                setModuleData({
-                    idModule: '',
-                    codeModule: '',
-                    nomModule: '',
-                    nomSemestre: '',
-                    nomFiliere: '',
-                    elementsNom: '',
-                    elementsCoeff: '',
-                });
-                fetchAffi()
-            } else {
-                console.error('Erreur lors de la mise à jour du module :', response);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour du module :', error);
-        }
-    };
 
     const handleDelete = (id) => {
         axios
@@ -278,20 +346,33 @@ const ModuleElement = () => {
         fetchAffi(); // Appel de la fonction
     }, []);
 
-
-
+    const [elementsList, setElementsList] = useState([]);
+    const [selectedModuleName, setSelectedModuleName] = useState("");
+    const handleFetchElements = async (moduleId, moduleName) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/element/module/${moduleId}`);
+            const transformedElements = response.data.map((element, index) => ({
+                id: index + 1,
+                ...element,
+            }));
+            setElementsList(transformedElements);
+            setSelectedModuleName(moduleName);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des éléments :", error);
+        }
+    };
     const columnsModules = [
-        { field: "idModule", headerName: "ID", flex: 0.1 },
+        { field: "idModule", headerName: "ID", flex: 0.05 },
         {
-            field: "codeModule", headerName: "Code", flex: 0.5, cellClassName: "multilineCell"
+            field: "codeModule", headerName: "Code", flex: 0.4, cellClassName: "multilineCell"
         },
-        { field: "nomModule", headerName: "Nom", flex: 0.5, cellClassName: "multilineCell" },
+        { field: "nomModule", headerName: "Nom", flex: 0.4, cellClassName: "multilineCell" },
         { field: "nomSemestre", headerName: "Semestre", flex: 0.3 },
         { field: "nomFiliere", headerName: "Filière", flex: 0.3 },
         {
             field: "actions",
             headerName: "Actions",
-            flex: 0.5,
+            flex: 0.7,
             renderCell: (params) => (
                 <>
                     <IconButton
@@ -309,7 +390,7 @@ const ModuleElement = () => {
 
 
                     <IconButton
-                        onClick={() => handleFetchElements(params.row.codeModule)}
+                        onClick={() => handleFetchElements(params.row.idModule, params.row.nomModule)}
                         style={{ color: "black" }}
                         title="Afficher"
                     >
@@ -321,48 +402,92 @@ const ModuleElement = () => {
         },
     ];
 
+    const handleDeleteElement = async (idElement) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'élément avec l'ID ${idElement} et ses associations ?`)) {
+            try {
+                const response = await axios.delete(`http://localhost:8080/api/element/deleteElement/${idElement}`);
+                alert("Element supprimé avec succès.");
+                // Recharge le tableau des éléments après suppression
+                if (selectedModuleName) {
+                    const selectedModule = modulesList.find(module => module.nomModule === selectedModuleName);
+                    if (selectedModule) {
+                        handleFetchElements(selectedModule.idModule, selectedModule.nomModule);
+                    }
+                }
+            } catch (error) {
+                console.error("Erreur lors de la suppression de l'élément :", error);
+                alert("Une erreur est survenue lors de la suppression de l'élément.");
+            }
+        }
+    };
+    const [modes, setModes] = useState([]);
+    const [selectedElement, setSelectedElement] = useState(null);
 
+    const handleFetchModes = async (elementId, elementName) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/element/modes/${elementId}`);
+            const transformedModes = response.data.map((mode, index) => ({
+                id: index + 1, // Ajout d'un ID unique basé sur l'index
+                ...mode,
+            }));
+            setModes(transformedModes);
+            setSelectedElement(elementName);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des modalités :", error);
+        }
+    };
 
-    const Elementcolumns = [
-        { field: "id", headerName: "ID", flex: 0.08 },
+    const columnsModes = [
+        { field: "idModeEval", headerName: "ID Modalité", flex: 0.2 },
+        { field: "nomMode", headerName: "Nom Modalité", flex: 0.4 },
+        { field: "coefficient", headerName: "Coefficient", flex: 0.4 },
         {
-            field: "name",
-            headerName: "Name",
-            flex: 0.6,
-            cellClassName: "multilineCell"
+            field: "actions",
+            headerName: "Actions",
+            flex: 0.7,
+            renderCell: (params) => (
+                <>
+
+                    <IconButton
+                        onClick={() => handleDeleteElement(params.row.elementId)}
+                        style={{ color: "red" }}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+
+
+
+
+                </>
+            ),
         },
+    ];
+
+    const columnsElements = [
+        { field: "elementId", headerName: "ID", flex: 0.1 },
+        { field: "elementName", headerName: "Nom", flex: 0.3 },
+        { field: "coefficient", headerName: "Coefficient", flex: 0.3 },
         {
-            field: "nomProfesseur",
+            field: "professeurNomComplet",
             headerName: "Professeur",
-            flex: 0.6,
-            cellClassName: "multilineCell"
-        },
-        {
-            field: "coefficient",
-            headerName: "coefficient",
             flex: 0.4,
-            cellClassName: "name-column--cell",
+            valueGetter: (params) => `${params.row.professeurNom || ""} ${params.row.professeurPrenom || ""}`,
         },
+        { field: "etatElement", headerName: "État", flex: 0.4 },
         {
-            field: "etatElement",
-            headerName: "Etat ",
-            flex: 0.5,
-            cellClassName: "multilineCell"
-        },
-        {
-            field: "Actions",
-            headerName: "Action",
-            flex: 0.9,
+            field: "actions",
+            headerName: "Actions",
+            flex: 0.7,
             renderCell: (params) => (
                 <>
                     <IconButton
-                        onClick={() => handleEdit(params.row)}
+                        onClick={() => fetchElementDetails(params.row)}
                         style={{ color: "blue", marginRight: "10px" }}
                     >
                         <EditIcon />
                     </IconButton>
                     <IconButton
-                        onClick={() => handleDeleteElement(params.row.idModule)}
+                        onClick={() => handleDeleteElement(params.row.elementId)}
                         style={{ color: "red" }}
                     >
                         <DeleteIcon />
@@ -370,7 +495,7 @@ const ModuleElement = () => {
 
 
                     <IconButton
-                        onClick={() => handleFetchElements(params.row.codeModule)}
+                        onClick={() => handleFetchModes(params.row.elementId, params.row.elementName)}
                         style={{ color: "black" }}
                         title="Afficher"
                     >
@@ -380,7 +505,11 @@ const ModuleElement = () => {
                 </>
             ),
         },
+
     ];
+
+
+
 
     const labelStyle = {
         color: colors.gray[700],
@@ -536,9 +665,10 @@ const ModuleElement = () => {
 
 
                             <Box display="flex" gap="20px" justifyContent="center" mt="20px">
-                                <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-                                    <button onClick={editingModule ? handleUpdate : addModule}>
-                                        {editingModule ? "Mettre à jour" : "Ajouter"}
+                                <Box flex={1} display="flex" justifyContent="center" alignItems="center" >
+
+                                    <button style={buttonStyle} onClick={editingMode ? handleSave : addModule} type="submit">
+                                        {editingMode ? "Mettre à jour" : "Ajouter"}
                                     </button>
                                 </Box>
                             </Box>
@@ -551,79 +681,139 @@ const ModuleElement = () => {
                     </Box>
                 </Box>
                 <Box
-                    flex={1}
+                    m="20px"
                     style={{
-                        backgroundColor: '#fff',
-                        borderRadius: '10px',
+                        backgroundColor: '#f9f9f9',
+                        borderRadius: '15px',
                         padding: '20px',
-                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)',
+                        maxWidth: '800px', // Réduire la largeur
+                        margin: '20px',    // Centrer la boîtes
+
                     }}
                 >
-                    <Box display="flex" flexDirection="column" gap="20px">
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="nomElement" style={labelStyle}>
-                                    Nom Élément :
-                                </label>
-                                <input
-                                    type="text"
-                                    id="nomElement"
-                                    name="nomElement"
-
-                                    style={inputStyle}
-                                />
+                    <Box display="flex" gap="20px" mb="20px">
+                        {/* Partie Gauche */}
+                        <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="elementName" style={labelStyle}>
+                                        Nom de l'Élément :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        style={inputStyle}
+                                        id="elementName"
+                                        name="elementName"
+                                        value={elementData.elementName}
+                                        onChange={handleChangeElement}
+                                    />
+                                </Box>
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="coefficient" style={labelStyle}>
+                                        Coefficient :
+                                    </label>
+                                    <input
+                                        type="number"
+                                        style={inputStyle}
+                                        id="coefficient"
+                                        name="coefficient"
+                                        value={elementData.coefficient}
+                                        onChange={handleChangeElement}
+                                    />
+                                </Box>
                             </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="coefficient" style={labelStyle}>
-                                    Coefficient :
-                                </label>
-                                <input
-                                    type="text"
-                                    id="coefficient"
-                                    name="coefficient"
 
-                                    style={inputStyle}
-                                />
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="etatElement" style={labelStyle}>
+                                        État de l'Élément :
+                                    </label>
+                                    <select
+                                        id="etatElement"
+                                        style={inputStyle}
+                                        name="etatElement"
+                                        value={elementData.etatElement}
+                                        onChange={handleChangeElement}
+                                    >
+                                        <option value="">Sélectionner l'état</option>
+                                        <option value="Validé">Validé</option>
+                                        <option value="Non Validé">Non Validé</option>
+                                    </select>
+                                </Box>
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="professeurId" style={labelStyle}>
+                                        Professeur :
+                                    </label>
+                                    <select
+                                        id="professeurId"
+                                        name="professeurNomComplet"
+                                        value={elementData.professeurNomComplet}
+                                        onChange={handleChangeElement}
+                                        style={inputStyle}
+                                    >
+                                        <option value="">Sélectionnez un professeur</option>
+                                        {professeurs.map((prof) => (
+                                            <option key={prof.CodeProf} value={prof.CodeProf}>
+                                                {prof.FirstName} {prof.LastName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </Box>
+                            </Box>
+
+                            <Box display="flex" gap="20px">
+
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="modesNoms" style={labelStyle}>
+                                        Modalités d'Évaluation (séparés par des virgules) :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="modesNoms"
+                                        name="modesNoms"
+                                        value={elementData.modesNoms}
+                                        onChange={handleChangeElement}
+                                        style={inputStyle}
+                                    />
+                                </Box>
+                            </Box>
+
+                            <Box display="flex" gap="20px">
+                                <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <label htmlFor="modesCoefficients" style={labelStyle}>
+                                        Coefficients des Modalités (séparés par des virgules) :
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="modesCoefficients"
+                                        name="modesCoefficients"
+                                        value={elementData.modesCoefficients}
+                                        onChange={handleChangeElement}
+                                        style={inputStyle}
+                                    />
+                                </Box>
+                            </Box>
+
+                            <Box display="flex" gap="20px" justifyContent="center" mt="20px">
+                                <Box flex={1} display="flex" justifyContent="center" alignItems="center">
+                                    <button style={buttonStyle} onClick={
+                                        handleSaveElement
+                                    } type="submit">
+                                        Mettre à jour
+                                    </button>
+                                </Box>
                             </Box>
                         </Box>
 
-                        <Box display="flex" gap="20px">
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="etatElement" style={labelStyle}>
-                                    État Élément :
-                                </label>
-                                <input
-                                    type="text"
-                                    id="etatElement"
-                                    name="etatElement"
+                        {/* Right Side  */}
 
-                                    style={inputStyle}
-                                />
-                            </Box>
-                            <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
-                                <label htmlFor="idProfesseur" style={labelStyle}>
-                                    Professeur ID :
-                                </label>
-                                <input
-                                    type="number"
-                                    id="idProfesseur"
-                                    name="idProfesseur"
 
-                                    style={inputStyle}
-                                />
-                            </Box>
-                        </Box>
-
-                        <Box display="flex" gap="20px" justifyContent="center" mt="20px">
-                            <button style={buttonStyle}>
-                                Ajouter Élément
-                            </button>
-                        </Box>
                     </Box>
                 </Box>
             </Box>
             <Box display="flex" gap="20px" height="75vh">
-                <Box flex={0.5} sx={{ maxWidth: "45%" }}>
+                <Box flex={0.5} sx={{ maxWidth: "42%" }}>
                     <DataGrid
                         rows={modulesList}
                         columns={columnsModules}
@@ -670,10 +860,60 @@ const ModuleElement = () => {
                         }}
                     />
                 </Box>
-                <Box flex={1} sx={{ maxWidth: "30%" }}>
-                    <DataGrid
-                        rows={elementsListModuleID}
-                        columns={Elementcolumns}
+
+                <Box flex={1} sx={{ maxWidth: "30% " }}>
+                    < DataGrid
+                        rows={elementsList}
+                        columns={columnsElements}
+                        components={{ Toolbar: GridToolbar }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                        }}
+                        checkboxSelection
+                        sx={{
+                            "& .MuiDataGrid-root": {
+                                border: "none",
+                            },
+                            "& .MuiDataGrid-cell": {
+                                border: "none",
+                            },
+                            "& .name-column--cell": {
+                                color: colors.primary[100],
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                backgroundColor: "#d8eaf4",
+                                borderBottom: "none",
+                            },
+                            "& .MuiDataGrid-virtualScroller": {
+                                backgroundColor: colors.primary[400],
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: "none",
+                                backgroundColor: "#d8eaf4",
+                            },
+                            "& .MuiCheckbox-root": {
+                                color: `${colors.greenAccent[200]} !important`,
+                            },
+                            "& .MuiDataGrid-iconSeparator": {
+                                color: colors.primary[100],
+                            },
+                            "& .MuiButton-text": {
+                                color: 'black',
+                            },
+                            "& .MuiDataGrid-toolbarContainer": {
+                                color: colors.gray[100],
+                            },
+                        }}
+                    />
+                </Box>
+                <Box flex={1} sx={{ maxWidth: "25% " }}>
+                    < DataGrid
+                        rows={modes}
+                        columns={columnsModes}
                         components={{ Toolbar: GridToolbar }}
                         initialState={{
                             pagination: {
@@ -720,55 +960,8 @@ const ModuleElement = () => {
                     />
                 </Box>
 
-                <Box flex={1} sx={{ maxWidth: "25%" }}>
-                    <DataGrid
-                        rows={elementsListModuleID}
-                        columns={Elementcolumns}
-                        components={{ Toolbar: GridToolbar }}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
-                                },
-                            },
-                        }}
-                        checkboxSelection
-                        sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                            },
-                            "& .MuiDataGrid-cell": {
-                                border: "none",
-                            },
-                            "& .name-column--cell": {
-                                color: colors.primary[100],
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                backgroundColor: "#d8eaf4",
-                                borderBottom: "none",
-                            },
-                            "& .MuiDataGrid-virtualScroller": {
-                                backgroundColor: colors.primary[400],
-                            },
-                            "& .MuiDataGrid-footerContainer": {
-                                borderTop: "none",
-                                backgroundColor: "#d8eaf4",
-                            },
-                            "& .MuiCheckbox-root": {
-                                color: `${colors.greenAccent[200]} !important`,
-                            },
-                            "& .MuiDataGrid-iconSeparator": {
-                                color: colors.primary[100],
-                            },
-                            "& .MuiButton-text": {
-                                color: 'black',
-                            },
-                            "& .MuiDataGrid-toolbarContainer": {
-                                color: colors.gray[100],
-                            },
-                        }}
-                    />
-                </Box>
+
+
             </Box>
         </Box >
     );

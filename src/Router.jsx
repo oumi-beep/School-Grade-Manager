@@ -18,10 +18,12 @@ import {
   Login,
   ModuleElement,
   ModeEvaluation
-  
+
 } from "./scenes";
 import Professors from "./scenes/Professors";
 import Fields from "./scenes/Fields";
+import Account from "./scenes/Account";
+import ModulesElements from "./scenes/ModulesElements";
 
 const AppRouter = () => {
   return (
@@ -33,8 +35,9 @@ const AppRouter = () => {
         <Route path="/Dashboard" element={<App />}>
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/Dashboard/Professors" element={<Professors />} />
+          <Route path="/Dashboard/Account" element={<Account />} />
           <Route path="/Dashboard/Fields" element={<Fields />} />
-          <Route path="/Dashboard/ModuleElement" element={<ModuleElement />} />
+          <Route path="/Dashboard/ModulesElements" element={<ModulesElements />} />
           <Route path="/Dashboard/team" element={<Team />} />
           <Route path="/Dashboard/ModeEvaluation" element={<ModeEvaluation />} />
           <Route path="/Dashboard/invoices" element={<Invoices />} />

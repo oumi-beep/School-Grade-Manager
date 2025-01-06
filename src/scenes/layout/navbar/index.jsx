@@ -56,9 +56,9 @@ const Navbar = () => {
           <a href="/Dashboard">Dashboard</a>
           <a href="/Dashboard/Professors">Professors</a>
           <a href="/Dashboard/Fields">Fields</a>
-          <a href="/Dashboard/ModuleElement">Modules and Elements</a>
+          <a href="/Dashboard/ModulesElements">Modules and Elements</a>
           <a href="/Dashboard/ModeEvaluation">Evaluation Modalities</a>
-          <a href='/Dashboard/invoices' >Acount</a>
+          <a href='/Dashboard/Account' >Acount</a>
           <a href="/Dashboard/faq">FAQ</a>
           <a href="/Dashboard/calendar">Calendar</a>
         </nav>
