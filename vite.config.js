@@ -12,8 +12,8 @@ export default defineConfig({
     // Configuration du proxy pour rediriger les requêtes API vers le backend
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',  // URL de votre serveur backend
-        changeOrigin: true,               // Modifie l'origine de la requête pour le backend
+        target: 'http://localhost:8080', 
+        changeOrigin: true,              
       },
     },
   },

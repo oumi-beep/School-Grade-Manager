@@ -20,6 +20,9 @@ import {
   ModeEvaluation
 
 } from "./scenes";
+
+import Starts from "./scenes/Starts";
+import ProfessorsSide from "./scenes/ProfessorsSide";
 import Professors from "./scenes/Professors";
 import Fields from "./scenes/Fields";
 import Account from "./scenes/Account";
