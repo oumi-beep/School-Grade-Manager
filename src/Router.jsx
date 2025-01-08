@@ -53,6 +53,11 @@ const AppRouter = () => {
           <Route path="/Dashboard/faq" element={<FAQ />} />
           <Route path="/Dashboard/geography" element={<Geography />} />
         </Route>
+        {/* Espace Professeur*/}
+        <Route path="/ProfessorsSide" element={<App />} >
+            <Route path="" element={<ProfessorsSide />} />
+            <Route path="/ProfessorsSide/notes" element={<Starts />} />
+          </Route>
       </Routes>
     </Router>
   );

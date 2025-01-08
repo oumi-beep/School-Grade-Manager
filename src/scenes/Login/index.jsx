@@ -34,9 +34,9 @@ const Login = () => {
       localStorage.setItem("userName", name);
 
       // Navigate to the appropriate dashboard based on the role
-      if (role === "Professor") {
+      if (role === "Professeur") {
         navigate(dashboard || "/ProfessorsSide");
-      } else if (role === "Admin") {
+      } else if (role === "Administrateur") {
         navigate(dashboard || "/Dashboard");
       } else {
         alert("Unknown role");
