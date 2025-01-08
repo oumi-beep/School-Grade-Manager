@@ -183,7 +183,7 @@ const ModuleElement = () => {
             nomModule: module.nomModule,
             nomSemestre: module.nomSemestre,
             nomFiliere: module.nomFiliere,
-            elementsNom: "", // Temporarily empty
+            elementsNom: "", // Temporarily emptyv
             elementsCoeff: "", // Temporarily empty
         });
 
