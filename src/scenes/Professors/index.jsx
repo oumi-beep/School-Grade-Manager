@@ -18,7 +18,9 @@ const Professors = () => {
   const [selectedElements, setSelectedElements] = useState([]);
 
   const fetchElementsForProfessor = (professorCode) => {
-    if (!professorCode) return; // Skip if no professor is selected
+    if (!professorCode) return;  
+     
+  
   
     axios
       .get(`http://localhost:8080/api/element/elements_professors/${professorCode}`)
@@ -30,6 +32,7 @@ const Professors = () => {
             CodeProf: elmt.CodeProf,
           }));
           setElementsListProfID(transformedData); // Update elements list
+      
         } else {
           console.log('No elements found for this professor');
           setElementsListProfID([]);   
@@ -43,6 +46,7 @@ const Professors = () => {
   //For elemnts tockens affected to a professor
   useEffect(() => {
     fetchElementsForProfessor(selectedProfessorCode);
+    
   }, [selectedProfessorCode]); // Re-fetch when selectedProfessorCode changes
   
 
@@ -424,10 +428,11 @@ const Professors = () => {
   const handleRowClick = (params) => {
     const selectedRowId = params.row.ElementID; // Get the ID of the clicked row
     console.log('Selected Row ID:', selectedRowId);
-  
-    // Toggle selection if already selected, else add to selected list
+
+    // Toggle selection and handle submission
     setSelectedElements((prevSelected) => {
         let newSelectedElements;
+
         if (prevSelected.includes(selectedRowId)) {
             // Remove from selected if already selected
             newSelectedElements = prevSelected.filter((ElementID) => ElementID !== selectedRowId);
@@ -435,13 +440,15 @@ const Professors = () => {
             // Add to selected if not selected
             newSelectedElements = [...prevSelected, selectedRowId];
         }
-        
-        // Automatically submit if a new element is selected
+
+        // Submit the selected elements
         handleSubmitt(newSelectedElements);
-        
-        return newSelectedElements;
+
+        // Free the selected row 
+        return newSelectedElements.filter((ElementID) => ElementID !== selectedRowId);
     });
 };
+
 
 const handleSubmitt = (newSelectedElements) => {
     if (!selectedProfessorId) {
