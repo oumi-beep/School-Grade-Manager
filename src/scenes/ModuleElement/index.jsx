@@ -185,7 +185,7 @@ const ModuleElement = () => {
             nomFiliere: module.nomFiliere,
             elementsNom: "", // Temporarily emptyv
             elementsCoeff: "", // Temporarily empty
-        });
+        }); 
 
         try {
             // Récupérer les éléments associés à ce module depuis l'API
