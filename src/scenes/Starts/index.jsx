@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
 
+
 const SemestersList = () => {
   const [semesters, setSemesters] = useState([]);
   const [filieres, setFilieres] = useState([]);
