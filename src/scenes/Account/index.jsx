@@ -282,7 +282,7 @@ const AddCompteUtilisateur = () => {
                 <Typography variant="h4" gutterBottom>
                     {editingMode ? "Modifier le Compte Utilisateur" : "Ajouter un Compte Utilisateur"}
                 </Typography>
-                <form onSubmit={editingMode ? handleUpdate : handleSubmit}>
+                <form onSubmit={editingMode ? handleUpdate : handleSubmit} className="formaccount">
                     <Grid container spacing={2}>
                         {/* Première ligne : Nom, Prénom, Code Professeur */}
                         <Grid item xs={4}>
