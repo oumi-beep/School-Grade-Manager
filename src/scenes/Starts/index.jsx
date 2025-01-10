@@ -7,7 +7,8 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import {  Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
+import {MenuItem, Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
 
 const SemestersList = () => {
   const [semesters, setSemesters] = useState([]);
@@ -21,14 +22,43 @@ const SemestersList = () => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState(null); // Track selected semester
   const [error, setError] = useState(null);
+  const [selectedElementId, setSelectedElementId] = useState(null);
+  const [studentData, setStudentData] = useState({ modalites: [] });
+  const [modalites, setModalites] = useState([]);
+  const [openModal, setOpenModal] = useState(false); // Add state for modal
+  const addModaliteInput = () => {
+    if (Array.isArray(studentData.modalites)) {
+      setStudentData({
+        ...studentData,
+        modalites: [...studentData.modalites, { nomMode: "", evaluationMode: "" }],
+      });
+    } else {
+      console.error("Modalites is not an array:", studentData.modalites);
+    }
+  };
 
-  const [openModal, setOpenModal] = useState(false);
-  const [studentData, setStudentData] = useState({
-    name: '',
-    surname: '',
-    cse: '',
-    evaluationMode: '',
-  });
+  const handleOpenModal = (student) => {
+    setStudentData({
+      name: student.nomEtudiant,
+      surname: student.prenomEtudiant,
+      nomMode: '', 
+      evaluationMode: '',
+    });
+    setOpenModal(true);
+  };
+  const handleModaliteChange = (index, field, value) => {
+    const updatedModalites = [...studentData.modalites]; // Copy existing modalites array
+    updatedModalites[index][field] = value; // Update the specific field for the modalite at the given index
+  
+    // Update the state
+    setStudentData({
+      ...studentData,
+      modalites: updatedModalites, // Update the modalites array in state
+    });
+  };
+  
+  
+
 
   // Fetch professorId from local storage
   const professorId = localStorage.getItem("userId");
@@ -40,13 +70,13 @@ const SemestersList = () => {
   };
 
   const columns = [
-    { field: 'cneEtudiant' ,headerName:"CNE",with:150},
+    { field: 'cneEtudiant', headerName: 'CNE', width: 150 },
     { field: 'nomEtudiant', headerName: 'Last Name', width: 150 },
     { field: 'prenomEtudiant', headerName: 'First Name', width: 150 },
     { field: 'niveau', headerName: 'Level', width: 150 },
-    { field: '',headerName:'note',width:150},
-    { field:'',headerName:'etatNote ',with:150 },
-    { field:'',headerName:'absent ',width:150},
+    { field: 'note', headerName: 'Note', width: 150 },
+    { field: 'etatNote', headerName: 'Etat Note', width: 150 },
+    { field: 'absent', headerName: 'Absent', width: 150 },
     {
       field:'test',
       headerName: 'Action',
@@ -73,21 +103,24 @@ const SemestersList = () => {
       }
     }     
   ];
-  const handleOpenModal = (student) => {
-    setStudentData({
-      name: student.nomEtudiant,
-      surname: student.prenomEtudiant,
-      cse: '', 
-      evaluationMode: '',
-    });
-    setOpenModal(true);
-  };
+
 
   const handleCloseModal = () => setOpenModal(false);
   // Handle the form submission
-  const handleSubmit = () => {
-    console.log('Student Data:', studentData);
-    handleCloseModal();
+  const handleSubmit = async () => {
+    try {
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error submitting notes:", error);
+    }
+  };
+  const handleNoteChange = (index, newNote) => {
+    const updatedModalites = [...studentData.modalites];
+    updatedModalites[index].evaluationMode = newNote;
+    setStudentData(prevState => ({
+      ...prevState,
+      modalites: updatedModalites,
+    }));
   };
 
   // Fetch Semesters
@@ -150,7 +183,7 @@ const SemestersList = () => {
   };
 
   // Fetch Students
-  const fetchStudents = async () => {
+  const fetchStudents = async (idElement)  => {
     if (!selectedSemester) {
       alert("Please select a semester.");
       return;
@@ -179,6 +212,8 @@ const SemestersList = () => {
         `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}`
       );
       setStudents(response.data);
+      setSelectedElementId(idElement);
+  
     } catch (err) {
       console.error("Failed to fetch students:", err);
       setError("Failed to fetch students.");
@@ -190,6 +225,41 @@ const SemestersList = () => {
     setSelectedSemester(semester);
     fetchFilieres(semester.id);
   };
+
+
+  //fetch modalite
+  useEffect(() => {
+    const fetchModalites = async () => {
+      if (!selectedElementId) return; 
+      console.log(selectedElementId);
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/modes-evaluation/element/${selectedElementId}/modalites`
+        );
+        console.log(response.data); 
+        
+        const modalites = (response.data || []).map((modalite) => ({
+          nomMode: modalite, // Map each string to an object with 'nomMode'
+          evaluationMode: '', // Initialize evaluationMode as empty string or default value
+        }));
+  
+        setStudentData((prevState) => ({
+          ...prevState,
+          modalites: modalites,
+        }));
+
+      } catch (err) {
+        console.error("Error fetching modalites:", err);
+        setError("An error occurred while fetching modalites.");
+      }
+    };
+
+    fetchModalites();
+  }, [selectedElementId]);
+  
+
+  
 
   if (loadingSemesters) return <p>Loading semesters...</p>;
   if (error) return <p>{error}</p>;
@@ -205,7 +275,7 @@ const SemestersList = () => {
         ) : (
           <ul>
             {semesters.map((semester) => (
-              <li key={semester.id}>
+              <li key={semester.semesterId}>
                 <button onClick={() => handleSemesterSelection(semester)}>
                   <strong>{semester.name}</strong>
                 </button>
@@ -294,35 +364,44 @@ const SemestersList = () => {
           </Box>
         </Box>
       </div>
-      {/* Modal to Add Notes */}
       <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>Add Notes for {studentData.name} {studentData.surname}</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="nom Modalite"
-           
-            onChange={(e) => setStudentData({ ...studentData, cse: e.target.value })}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Note "
-            value={studentData.evaluationMode}
-            onChange={(e) => setStudentData({ ...studentData, evaluationMode: e.target.value })}
-            fullWidth
-            margin="normal"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+  <DialogTitle>
+    Add Notes for {studentData.name} {studentData.surname}
+  </DialogTitle>
+  <DialogContent>
+    {(studentData.modalites || []).map((modalite, index) => (
+      <div key={index} style={{ marginBottom: "1rem" }}>
+        {/* Modalite Name Field (View Only) */}
+        <TextField
+          label="Nom Modalite"
+          value={modalite.nomMode || ''} // Shows 'nomMode' value
+          fullWidth
+          margin="normal"
+          InputProps={{ readOnly: true }} // Keep read-only for modalite name
+        />
+        
+        {/* Note Field (Editable) */}
+        <TextField
+          label="Note"
+          value={modalite.evaluationMode || ''} // Shows 'evaluationMode'
+          onChange={(e) => handleNoteChange(index, e.target.value)} // Handle note change
+          fullWidth
+          margin="normal"
+        />
+      </div>
+    ))}
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={handleCloseModal} color="primary">
+      Cancel
+    </Button>
+    <Button onClick={handleSubmit} color="primary">
+      Save
+    </Button>
+  </DialogActions>
+</Dialog>
+</>
   );
 };
 
