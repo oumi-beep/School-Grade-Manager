@@ -3,10 +3,14 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  Typography,
+  Button,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { tokens, ColorModeContext } from "../../../theme";
-import { useContext } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DarkModeOutlined,
   LightModeOutlined,
@@ -23,6 +27,40 @@ const NavbarProfessorsSide = () => {
   const colorMode = useContext(ColorModeContext);
   const { toggled, setToggled } = useContext(ToggledContext);
   const isMdDevices = useMediaQuery("(max-width:768px)");
+
+   const userFirstname = localStorage.getItem("userFirstname ") || "Unknown";
+  const userLastName = localStorage.getItem("userLastName") || "User";
+  const userEmail = localStorage.getItem("email") || "No email";
+
+   const [anchorEl, setAnchorEl] = useState(null);
+  const isMenuOpen = Boolean(anchorEl);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:8080/auth/logout", {
+        method: "POST",
+        credentials: "include", // Important for sending session cookies
+      });
+  
+      // Clear user data from localStorage
+      localStorage.clear();
+  
+      // Redirect to the login page
+      console.log("Logged out successfully");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+  
 
   return (
     <Box
@@ -46,9 +84,9 @@ const NavbarProfessorsSide = () => {
         <img
           src={loginImage}
           alt="Logo"
-          style={{ width: '40px', height: '40px' }}
+          style={{ width: "40px", height: "40px" }}
         />
-        <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Ensa-Kh</span>
+        <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>Ensa-Kh</span>
       </Box>
 
       {/* Navigation Links for Professors */}
@@ -59,9 +97,8 @@ const NavbarProfessorsSide = () => {
           <a href="/ProfessorsSide/validate">Validate Grades</a>
           <a href="/ProfessorsSide/Elements">Elements</a>
           <a href="/ProfessorsSide/Modules">Modules</a>
-          <a href="/ProfessorsSide/schedule">schedule</a>
-         </nav>
-
+          <a href="/ProfessorsSide/schedule">Schedule</a>
+        </nav>
       </Box>
 
       {/* Icon Buttons for Settings and Mode Toggle */}
@@ -76,9 +113,42 @@ const NavbarProfessorsSide = () => {
         <IconButton>
           <SettingsOutlined />
         </IconButton>
-        <IconButton>
+        <IconButton onClick={handleMenuOpen}>
           <PersonOutlined />
         </IconButton>
+        {/* Dropdown Menu for Professor Information */}
+        <Menu
+          anchorEl={anchorEl}
+          open={isMenuOpen}
+          onClose={handleMenuClose}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <MenuItem>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {`${userFirstname} ${userLastName}`}
+            </Typography>
+          </MenuItem>
+          <MenuItem>
+            <Typography variant="body2">Email: {userEmail}</Typography>
+          </MenuItem>
+          <MenuItem onClick={handleLogout}>
+            <Button
+              variant="contained"
+              color="error"
+              style={{ backgroundColor: "#6c757d" }}
+              fullWidth
+            >
+              Logout
+            </Button>
+          </MenuItem>
+        </Menu>
       </Box>
     </Box>
   );
