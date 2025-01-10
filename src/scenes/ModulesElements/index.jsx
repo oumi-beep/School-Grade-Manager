@@ -34,10 +34,33 @@ const ModuleElement = () => {
         professeurPrenom: "",
         modesNoms: "",
         modesCoefficients: "",
-        professeurNomComplet: "Saadi Mostafa",
+        professeurNomComplet: "",
     });
+    const [modesList, setModesList] = useState([]);
+    // Suppression d'une modalité
+    const handleDeleteMode = async (idModeEval) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer la modalité ID ${idModeEval} ?`)) {
+            try {
+                await axios.delete(`http://localhost:8080/api/modes-evaluation/delete/${idModeEval}`);
+                alert("Modalité supprimée avec succès.");
 
-
+                // Recharge la liste des modalités après suppression
+                if (selectedElement) {
+                    const selectedElementObj = elementsList.find(
+                        (element) => element.elementName === selectedElement
+                    );
+                    if (selectedElementObj) {
+                        await handleFetchModes(selectedElementObj.elementId, selectedElement);
+                    }
+                }
+                // Met à jour la liste des modalités
+                setModesList((prevModes) => prevModes.filter((mode) => mode.idModeEval !== idModeEval));
+            } catch (error) {
+                console.error("Erreur lors de la suppression de la modalité :", error);
+                alert("Une erreur est survenue lors de la suppression de la modalité.");
+            }
+        }
+    };
 
     const [professeurs, setProfesseurs] = useState([]);
 
@@ -62,9 +85,43 @@ const ModuleElement = () => {
         }));
     };
 
+
+    const handleChangeProfessor = (event) => {
+        const fullName = event.target.value.trim();
+        const [prenom, ...nomParts] = fullName.split(" ");
+        const nom = nomParts.join(" ");
+
+        setElementData((prevData) => ({
+            ...prevData,
+            professeurNomComplet: fullName,
+            professeurPrenom: prenom || "",  // Gestion si seul un prénom est saisi
+            professeurNom: nom || ""         // Gestion si aucun nom de famille n'est fourni
+        }));
+    };
+
+
+
     const handleSaveElement = async () => {
         const modesNomArray = elementData.modesNoms.split(",").map((nom) => nom.trim());
         const modesCoeffArray = elementData.modesCoefficients.split(",").map((coeff) => parseFloat(coeff));
+
+        // Vérification du nombre de modes et de coefficients
+        if (modesNomArray.length !== modesCoeffArray.length) {
+            alert("Le nombre de modalités et le nombre de coefficients doivent être identiques.");
+            return;
+        }
+
+        // Vérification que tous les coefficients sont numériques et valides
+        if (modesCoeffArray.some(isNaN)) {
+            alert("Tous les coefficients doivent être des valeurs numériques.");
+            return;
+        }
+        // Vérification de la somme des coefficients
+        const sumCoefficients = modesCoeffArray.reduce((sum, coeff) => sum + coeff, 0);
+        if (sumCoefficients !== 1) {
+            alert("La somme des coefficients des modalités doit être égale à 1.");
+            return; // Interrompt la fonction si la condition n'est pas respectée
+        }
 
         const updatedElement = {
             elementId: elementData.elementId,
@@ -130,7 +187,24 @@ const ModuleElement = () => {
         // Transformer les chaînes de noms et coefficients en listes
         const elementsNomArray = moduleData.elementsNom.split(",").map((nom) => nom.trim());
         const elementsCoeffArray = moduleData.elementsCoeff.split(",").map((coeff) => parseFloat(coeff));
+        // Vérification de compatibilité des tailles
+        if (elementsNomArray.length !== elementsCoeffArray.length) {
+            alert("Le nombre d'éléments et le nombre de coefficients doivent être identiques.");
+            return;
+        }
 
+        // Vérification que tous les coefficients sont des nombres valides
+        if (elementsCoeffArray.some(isNaN)) {
+            alert("Tous les coefficients doivent être des valeurs numériques valides.");
+            return;
+        }
+
+        // Vérification que la somme des coefficients est égale à 1
+        const sumCoefficients = elementsCoeffArray.reduce((sum, coeff) => sum + coeff, 0);
+        if (sumCoefficients !== 1) {
+            alert("La somme des coefficients des éléments doit être égale à 1.");
+            return;
+        }
         const updatedModule = {
             idModule: moduleData.idModule,
             codeModule: moduleData.codeModule,
@@ -178,13 +252,11 @@ const ModuleElement = () => {
             const modes = await response.json();
 
 
-
+            console.log(modes)
             // Préparer les données des éléments pour les afficher dans le formulaire
-            const modesNom = modes.map(mode => mode.nomMode).join(', ');
-            const modesCoeff = modes.map(mode => mode.coefficient).join(', ');
-
-            // Vérifier et découper professeurNomComplet
-            const [profFirstName, profLastName] = element.professeurNom.split(" ");
+            const modesNom = modes.map(mode => mode.nomMode).join(',');
+            const modesCoeff = modes.map(mode => mode.coefficient).join(',');
+            console.log(modesNom)
 
             // Mettre à jour les données de l'élément
             setElementData({
@@ -192,10 +264,10 @@ const ModuleElement = () => {
                 elementName: element.elementName,
                 coefficient: element.coefficient,
                 etatElement: element.etatElement,
+                professeurNomComplet: `${element.professeurPrenom || ""} ${element.professeurNom || ""}`,
                 modesNoms: modesNom,
                 modesCoefficients: modesCoeff,
-                professeurNom: profLastName,
-                professeurPrenom: profFirstName,
+
             });
         } catch (error) {
             console.error("Erreur lors de la récupération des détails de l'élément :", error);
@@ -212,10 +284,12 @@ const ModuleElement = () => {
             }
 
             const elements = await response.json();
+            console.log(elements);
 
-            // Préparer les données des éléments pour les afficher dans le formulaire
-            const elementsNom = elements.map(element => element.ElementName).join(', ');
-            const elementsCoeff = elements.map(element => element.Coefficient).join(', ');
+            // Extraction des noms des éléments
+            const elementNames = elements.map(item => item.elementName).join(',');
+            const elementCoeffs = elements.map(item => item.coefficient).join(',');
+
 
             // Mettre à jour les données du formulaire avec les informations du module et des éléments
             setModuleData({
@@ -224,8 +298,9 @@ const ModuleElement = () => {
                 nomModule: module.nomModule,
                 nomSemestre: module.nomSemestre,
                 nomFiliere: module.nomFiliere,
-                elementsNom: elementsNom,
-                elementsCoeff: elementsCoeff,
+
+                elementsNom: elementNames,
+                elementsCoeff: elementCoeffs,
             });
             setEditingMode(true);
 
@@ -405,13 +480,14 @@ const ModuleElement = () => {
     const handleDeleteElement = async (idElement) => {
         if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'élément avec l'ID ${idElement} et ses associations ?`)) {
             try {
-                const response = await axios.delete(`http://localhost:8080/api/element/deleteElement/${idElement}`);
-                alert("Element supprimé avec succès.");
-                // Recharge le tableau des éléments après suppression
+                await axios.delete(`http://localhost:8080/api/element/deleteElement/${idElement}`);
+                alert("Élément supprimé avec succès.");
+
+                // Recharge la liste des éléments associés au module sélectionné
                 if (selectedModuleName) {
                     const selectedModule = modulesList.find(module => module.nomModule === selectedModuleName);
                     if (selectedModule) {
-                        handleFetchElements(selectedModule.idModule, selectedModule.nomModule);
+                        await handleFetchElements(selectedModule.idModule, selectedModule.nomModule);
                     }
                 }
             } catch (error) {
@@ -420,6 +496,7 @@ const ModuleElement = () => {
             }
         }
     };
+
     const [modes, setModes] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
 
@@ -449,7 +526,7 @@ const ModuleElement = () => {
                 <>
 
                     <IconButton
-                        onClick={() => handleDeleteElement(params.row.elementId)}
+                        onClick={() => handleDeleteMode(params.row.idModeEval)}
                         style={{ color: "red" }}
                     >
                         <DeleteIcon />
@@ -471,7 +548,7 @@ const ModuleElement = () => {
             field: "professeurNomComplet",
             headerName: "Professeur",
             flex: 0.4,
-            valueGetter: (params) => `${params.row.professeurNom || ""} ${params.row.professeurPrenom || ""}`,
+            valueGetter: (params) => `${params.row.professeurPrenom || ""} ${params.row.professeurNom || ""}`,
         },
         { field: "etatElement", headerName: "État", flex: 0.4 },
         {
@@ -748,13 +825,13 @@ const ModuleElement = () => {
                                     <select
                                         id="professeurId"
                                         name="professeurNomComplet"
-                                        value={elementData.professeurNomComplet}
-                                        onChange={handleChangeElement}
+                                        value={elementData.professeurNomComplet || ""}
+                                        onChange={handleChangeProfessor}
                                         style={inputStyle}
                                     >
                                         <option value="">Sélectionnez un professeur</option>
                                         {professeurs.map((prof) => (
-                                            <option key={prof.CodeProf} value={prof.CodeProf}>
+                                            <option key={prof.CodeProf} value={`${prof.FirstName} ${prof.LastName}`}>
                                                 {prof.FirstName} {prof.LastName}
                                             </option>
                                         ))}
