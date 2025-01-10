@@ -242,8 +242,9 @@ const SemestersList = () => {
 
   return (
     <>
-      <div className="semesterss-container">
-        <h1>Semesters Assigned</h1>
+     <div className="semesterss-container">
+      <h1>Semesters Assigned</h1>
+      <ul>
         {semesters.map((semester) => (
           <li key={semester.id}>
             <button onClick={() => handleSemesterSelection(semester)}>
@@ -251,7 +252,8 @@ const SemestersList = () => {
             </button>
           </li>
         ))}
-
+      </ul>
+ 
         {loadingFilieres && <p>Loading filières...</p>}
         {filieres.length > 0 && !loadingFilieres && (
           <div className="filiere-container">
