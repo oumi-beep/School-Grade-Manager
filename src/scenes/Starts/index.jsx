@@ -324,35 +324,32 @@ const SemestersList = () => {
       </div>
 
       <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>Add Notes for {studentData.name} {studentData.surname}</DialogTitle>
+        <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
         <DialogContent>
-          <TextField
-            select
-            label="Modalité"
-            value={studentData.modality}
-            onChange={(e) => setStudentData({ ...studentData, modality: e.target.value })}
-            fullWidth
-            margin="normal"
-            SelectProps={{ native: true }}
-          >
-            <option value="" disabled>
-              {loadingModalities ? "Chargement..." : "Sélectionnez une modalité"}
-            </option>
-            {modalities.map((modality) => (
-              <option key={modality.id} value={modality.id}>
-                {modality.nomMode}
-              </option>
-            ))}
-          </TextField>
-          <TextField
-            label="Note"
-            type="number"
-            value={studentData.note}
-            onChange={(e) => setStudentData({ ...studentData, note: e.target.value })}
-            fullWidth
-            margin="normal"
-            inputProps={{ min: 0, max: 20, step: 0.25 }}
-          />
+          {modalities.length > 0 ? (
+            modalities.map((modality) => (
+              <TextField
+                key={modality.id}
+                label={`Note for ${modality.nomMode}`}
+                type="number"
+                value={studentData.notes?.[modality.id] || ''}
+                onChange={(e) =>
+                  setStudentData((prevData) => ({
+                    ...prevData,
+                    notes: {
+                      ...prevData.notes,
+                      [modality.id]: e.target.value,
+                    },
+                  }))
+                }
+                fullWidth
+                margin="normal"
+                inputProps={{ min: 0, max: 20, step: 0.25 }}
+              />
+            ))
+          ) : (
+            <CircularProgress />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal} color="primary">
@@ -363,6 +360,7 @@ const SemestersList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
     </>
   );
 };
