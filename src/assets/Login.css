@@ -24,20 +24,17 @@
 .Login2div {
   display: flex;
   justify-content: space-between;
-  /* Ensure space between the containers */
   align-items: center;
   background-color: #2A2637;
   padding: 15px;
   height: 80%;
   width: 75%;
-  /* Or you can use 100% if you want it to take full width */
   max-width: 1200px;
-  /* Add a max-width if you want to limit it */
   border-radius: 10px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-.login-container {
+.login-containerr {
   max-width: 400px;
   height: 100%;
   padding: 15px;
@@ -47,7 +44,7 @@
   transition: transform 0.3s ease-in-out;
 }
 
-.login-container img {
+.login-containerr img {
   max-width: 100%;
   height: auto;
   height: 100%;
@@ -61,12 +58,12 @@ h1 {
   margin-bottom: 20px;
 }
 
-.login-form {
+.login-formm {
   display: flex;
   flex-direction: column;
 }
 
-.form-group {
+.form-groupp {
   margin-bottom: 20px;
 }
 
@@ -74,9 +71,10 @@ label {
   font-weight: bold;
   margin-bottom: 10px;
   display: block;
-  color: white;
+  color: #2A2637;
 }
 
+ 
 input,
 select {
   width: 92%;
@@ -91,7 +89,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: #705eb9;
+  border-color: white;
   outline: none;
 }
 

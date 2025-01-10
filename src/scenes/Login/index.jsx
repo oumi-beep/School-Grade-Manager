@@ -26,12 +26,14 @@ const Login = () => {
       });
 
       // Extract user details from the response
-      const { role, id, name, dashboard } = response.data;
+      const { role, id, name,prenom,  dashboard } = response.data;
 
       // Store user details in local storage
       localStorage.setItem("userRole", role);
       localStorage.setItem("userId", id);
-      localStorage.setItem("userName", name);
+      localStorage.setItem("userLastName", name);
+      localStorage.setItem("userFirstname ",prenom);
+      localStorage.setItem("email",email);
 
       // Navigate to the appropriate dashboard based on the role
       if (role === "Professeur") {
@@ -63,25 +65,28 @@ const Login = () => {
   return (
     <div className="Login_fullbackground">
       <article className="Login2div">
-        <aside className="login-container">
+        <aside className="login-containerr">
           <img src={loginImage} alt="Login" />
         </aside>
-        <div className="login-container">
+        <div className="login-containerr">
           <h1>Login</h1>
-          <form className="login-form" onSubmit={handleLogin}>
-            <div className="form-group">
+          <form className="login-formm" onSubmit={handleLogin}>
+            <div className="form-groupp">
               <label htmlFor="email">Email</label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  style={{
+                    color: password.length > 0 ? "#705eb9" : "black",  
+                  }}
+                  required
+                />
             </div>
 
-            <div className="form-group">
+            <div className="form-groupp">
               <label htmlFor="password">Password</label>
               <input
                 type="password"
@@ -89,6 +94,9 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                style={{
+                  color: password.length > 0 ? "#705eb9" : "black",  
+                }}
                 required
               />
             </div>
