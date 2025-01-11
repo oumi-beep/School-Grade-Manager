@@ -441,9 +441,9 @@ const ModuleElement = () => {
         {
             field: "codeModule", headerName: "Code", flex: 0.4, cellClassName: "multilineCell"
         },
-        { field: "nomModule", headerName: "Nom", flex: 0.4, cellClassName: "multilineCell" },
-        { field: "nomSemestre", headerName: "Semestre", flex: 0.3 },
-        { field: "nomFiliere", headerName: "Filière", flex: 0.3 },
+        { field: "nomModule", headerName: "Name", flex: 0.4, cellClassName: "multilineCell" },
+        { field: "nomSemestre", headerName: "Semester", flex: 0.3 },
+        { field: "nomFiliere", headerName: "Program", flex: 0.3 },
         {
             field: "actions",
             headerName: "Actions",
@@ -463,11 +463,10 @@ const ModuleElement = () => {
                         <DeleteIcon />
                     </IconButton>
 
-
                     <IconButton
                         onClick={() => handleFetchElements(params.row.idModule, params.row.nomModule)}
                         style={{ color: "black" }}
-                        title="Afficher"
+                        title="View"
                     >
                         <VisibilityIcon />
                     </IconButton>
@@ -476,6 +475,7 @@ const ModuleElement = () => {
             ),
         },
     ];
+
 
     const handleDeleteElement = async (idElement) => {
         if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'élément avec l'ID ${idElement} et ses associations ?`)) {
@@ -515,42 +515,38 @@ const ModuleElement = () => {
     };
 
     const columnsModes = [
-        { field: "idModeEval", headerName: "ID Modalité", flex: 0.2 },
-        { field: "nomMode", headerName: "Nom Modalité", flex: 0.4 },
+        { field: "idModeEval", headerName: "ID", flex: 0.2 },
+        { field: "nomMode", headerName: "Name", flex: 0.4 },
         { field: "coefficient", headerName: "Coefficient", flex: 0.4 },
         {
             field: "actions",
             headerName: "Actions",
-            flex: 0.7,
+            flex: 0.4,
             renderCell: (params) => (
                 <>
-
                     <IconButton
                         onClick={() => handleDeleteMode(params.row.idModeEval)}
                         style={{ color: "red" }}
                     >
                         <DeleteIcon />
                     </IconButton>
-
-
-
-
                 </>
             ),
         },
     ];
 
+
     const columnsElements = [
         { field: "elementId", headerName: "ID", flex: 0.1 },
-        { field: "elementName", headerName: "Nom", flex: 0.3 },
+        { field: "elementName", headerName: "Name", flex: 0.3, cellClassName: "multilineCell" },
         { field: "coefficient", headerName: "Coefficient", flex: 0.3 },
         {
             field: "professeurNomComplet",
-            headerName: "Professeur",
+            headerName: "Professor",
             flex: 0.4,
-            valueGetter: (params) => `${params.row.professeurPrenom || ""} ${params.row.professeurNom || ""}`,
+            valueGetter: (params) => `${params.row.professeurPrenom || ""} ${params.row.professeurNom || ""}`, cellClassName: "multilineCell",
         },
-        { field: "etatElement", headerName: "État", flex: 0.4 },
+        { field: "etatElement", headerName: "State", flex: 0.4, cellClassName: "multilineCell" },
         {
             field: "actions",
             headerName: "Actions",
@@ -648,7 +644,7 @@ const ModuleElement = () => {
                 >
                     <Box display="flex" gap="20px" mb="20px">
                         {/* Partie Gauche */}
-                        <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                        <Box flex={1} width="50%" display="flex" flexDirection="column" gap="20px">
                             <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="codeModule" style={labelStyle}>
@@ -664,7 +660,7 @@ const ModuleElement = () => {
                                 </Box>
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="nomModule" style={labelStyle}>
-                                        Nom du Module :
+                                        Module Name :
                                     </label>
                                     <input type="text" style={inputStyle}
                                         id="nomModule"
@@ -677,7 +673,7 @@ const ModuleElement = () => {
                             <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="nomSemestre" style={labelStyle}>
-                                        Semestre :
+                                        Semester :
                                     </label>
                                     <select
                                         id="nomSemestre"
@@ -686,7 +682,7 @@ const ModuleElement = () => {
                                         value={moduleData.nomSemestre}
                                         onChange={handleChange}
                                     >
-                                        <option value="">Sélectionner un semestre</option>
+                                        <option value="">Select a semester</option>
                                         {semestres.map((semestre, index) => (
                                             <option key={index} value={semestre.id}>{semestre.nomSemestre}</option>
                                         ))}
@@ -694,7 +690,7 @@ const ModuleElement = () => {
                                 </Box>
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="nomFiliere" style={labelStyle}>
-                                        Filière :
+                                        Field :
                                     </label>
                                     <select
                                         id="nomFiliere"
@@ -703,7 +699,7 @@ const ModuleElement = () => {
                                         value={moduleData.nomFiliere}
                                         onChange={handleChange}
                                     >
-                                        <option value="">Sélectionner une filière</option>
+                                        <option value=""> Select a field</option>
                                         {filieres.map((filiere, index) => (
                                             <option key={index} value={filiere.id}>{filiere.nomFiliere}</option>
                                         ))}
@@ -714,7 +710,7 @@ const ModuleElement = () => {
                             <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="elementsNom" style={labelStyle}>
-                                        Noms des Élément (séparés par des virgules) :
+                                        Element Names (separated by commas) :
                                     </label>
                                     <input
                                         type="text"
@@ -727,7 +723,7 @@ const ModuleElement = () => {
                                 </Box>
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="elementsCoeff" style={labelStyle}>
-                                        Coefficients des Élément (séparés par des virgules) :
+                                        Element Coefficients (separated by commas) :
                                     </label>
                                     <input
                                         type="text"
@@ -745,7 +741,7 @@ const ModuleElement = () => {
                                 <Box flex={1} display="flex" justifyContent="center" alignItems="center" >
 
                                     <button style={buttonStyle} onClick={editingMode ? handleSave : addModule} type="submit">
-                                        {editingMode ? "Mettre à jour" : "Ajouter"}
+                                        {editingMode ? "Update" : "Add"}
                                     </button>
                                 </Box>
                             </Box>
@@ -771,11 +767,11 @@ const ModuleElement = () => {
                 >
                     <Box display="flex" gap="20px" mb="20px">
                         {/* Partie Gauche */}
-                        <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                        <Box flex={1} width="50%" display="flex" flexDirection="column" gap="20px">
                             <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="elementName" style={labelStyle}>
-                                        Nom de l'Élément :
+                                        Element Name :
                                     </label>
                                     <input
                                         type="text"
@@ -804,7 +800,7 @@ const ModuleElement = () => {
                             <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="etatElement" style={labelStyle}>
-                                        État de l'Élément :
+                                        Element Status:
                                     </label>
                                     <select
                                         id="etatElement"
@@ -813,14 +809,14 @@ const ModuleElement = () => {
                                         value={elementData.etatElement}
                                         onChange={handleChangeElement}
                                     >
-                                        <option value="">Sélectionner l'état</option>
+                                        <option value="">Select a State</option>
                                         <option value="Validé">Validé</option>
                                         <option value="Non Validé">Non Validé</option>
                                     </select>
                                 </Box>
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="professeurId" style={labelStyle}>
-                                        Professeur :
+                                        Professor :
                                     </label>
                                     <select
                                         id="professeurId"
@@ -829,7 +825,7 @@ const ModuleElement = () => {
                                         onChange={handleChangeProfessor}
                                         style={inputStyle}
                                     >
-                                        <option value="">Sélectionnez un professeur</option>
+                                        <option value="">Select a professor</option>
                                         {professeurs.map((prof) => (
                                             <option key={prof.CodeProf} value={`${prof.FirstName} ${prof.LastName}`}>
                                                 {prof.FirstName} {prof.LastName}
@@ -843,7 +839,7 @@ const ModuleElement = () => {
 
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="modesNoms" style={labelStyle}>
-                                        Modalités d'Évaluation (séparés par des virgules) :
+                                        Evaluation Methods (separated by commas) :
                                     </label>
                                     <input
                                         type="text"
@@ -854,12 +850,9 @@ const ModuleElement = () => {
                                         style={inputStyle}
                                     />
                                 </Box>
-                            </Box>
-
-                            <Box display="flex" gap="20px">
                                 <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                     <label htmlFor="modesCoefficients" style={labelStyle}>
-                                        Coefficients des Modalités (séparés par des virgules) :
+                                        Coefficients of the Methods (separated by commas) :
                                     </label>
                                     <input
                                         type="text"
@@ -872,12 +865,14 @@ const ModuleElement = () => {
                                 </Box>
                             </Box>
 
+
+
                             <Box display="flex" gap="20px" justifyContent="center" mt="20px">
                                 <Box flex={1} display="flex" justifyContent="center" alignItems="center">
                                     <button style={buttonStyle} onClick={
                                         handleSaveElement
                                     } type="submit">
-                                        Mettre à jour
+                                        Update
                                     </button>
                                 </Box>
                             </Box>
@@ -890,7 +885,7 @@ const ModuleElement = () => {
                 </Box>
             </Box>
             <Box display="flex" gap="20px" height="75vh">
-                <Box flex={0.5} sx={{ maxWidth: "42%" }}>
+                <Box flex={0.5} sx={{ maxWidth: "50%" }}>
                     <DataGrid
                         rows={modulesList}
                         columns={columnsModules}
@@ -938,7 +933,7 @@ const ModuleElement = () => {
                     />
                 </Box>
 
-                <Box flex={1} sx={{ maxWidth: "30% " }}>
+                <Box flex={1} sx={{ maxWidth: "34% " }}>
                     < DataGrid
                         rows={elementsList}
                         columns={columnsElements}
@@ -987,7 +982,7 @@ const ModuleElement = () => {
                         }}
                     />
                 </Box>
-                <Box flex={1} sx={{ maxWidth: "25% " }}>
+                <Box flex={1} sx={{ maxWidth: "23% " }}>
                     < DataGrid
                         rows={modes}
                         columns={columnsModes}
