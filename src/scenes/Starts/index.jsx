@@ -25,9 +25,10 @@ const SemestersList = () => {
   const [error, setError] = useState(null);
   const [selectedElementId, setSelectedElementId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [ModalitiesId,setModalitiesId]=useState([]);
+  const [ModalitiesId,setModalitiesId]=useState(null);
   const [studentData, setStudentData] = useState({
     name: '',
+    idEtudiant:'',
     surname: '',
     cse: '',
     evaluationMode: '',
@@ -52,9 +53,9 @@ const SemestersList = () => {
   const handleSaveNotes = async () => {
     // Create a List of Maps where each map contains key-value pairs
     const notesList = modalities.map((modality) => ({
-      studentId: studentData.cse,  // Student ID
+      studentId: studentData.idEtudiant,  // Student ID
       elementId: currentElement.idElement,  // Element ID
-      modalityId: modality.id,  // Modality ID
+      modalityId: modality.idModeEval,  // Modality ID
       note: studentData.notes?.[modality.id] || '',  // The note entered for this modality
     }));
   
@@ -95,6 +96,7 @@ const handleNoteChange = (modalityId, note) => {
       ...prevData.notes,
       [modalityId]: note,
     },
+    
   }));
 };
 
@@ -104,14 +106,14 @@ const handleNoteChange = (modalityId, note) => {
       .get(`http://localhost:8080/api/element/modes/${elementId}`)
       .then((response) => {
 
-        const transformedData = response.data.map((modality, index) => ({
-          id: index + 1,
-          ...modality,
+        const transformedData = response.data.map(({ idModeEval, nomMode }, index) => ({
+          id: index + 1, // This will assign the correct index, starting from 1
+          idModeEval,
+          nomMode,
         }));
-
-      const modalityIds = transformedData.map(modality => modality.idmodalite);
-      setModalitiesId(modalityIds); // Store all idmodalite values
-
+        
+        console.log(transformedData);
+  
         setModalities(transformedData);
       })
       .catch((error) => {
@@ -128,8 +130,10 @@ const handleNoteChange = (modalityId, note) => {
       return;
     }
 
+
     setStudentData({
       name: student.nomEtudiant,
+      idEtudiant:student.idEtudiant,
       surname: student.prenomEtudiant,
       cse: student.cneEtudiant,
       modality: '',
