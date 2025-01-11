@@ -25,6 +25,7 @@ const SemestersList = () => {
   const [error, setError] = useState(null);
   const [selectedElementId, setSelectedElementId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [ModalitiesId,setModalitiesId]=useState([]);
   const [studentData, setStudentData] = useState({
     name: '',
     surname: '',
@@ -45,16 +46,72 @@ const SemestersList = () => {
     primary: ['#1976d2', '#1565c0'],
     gray: ['#616161', '#757575'],
   };
+    
+  
+  //
+  const handleSaveNotes = async () => {
+    // Create a List of Maps where each map contains key-value pairs
+    const notesList = modalities.map((modality) => ({
+      studentId: studentData.cse,  // Student ID
+      elementId: currentElement.idElement,  // Element ID
+      modalityId: modality.id,  // Modality ID
+      note: studentData.notes?.[modality.id] || '',  // The note entered for this modality
+    }));
+  
+    console.log(notesList);
+  
+    try {
+      // Send the notesList (List of Maps) to the backend
+      const response = await fetch('http://localhost:8080/api/notes/addnoteModalite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notesList),  // Sending the List<Map>
+      });
+  
+      // Handle response from the backend
+      if (response.ok) {
+        alert('Notes saved successfully');
+      } else {
+        alert('Failed to save notes');
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      alert('An error occurred while saving notes');
+    }
+  
+    // Close the modal after saving
+    setOpenModal(false);
+  };
+  
+  
+
+// Handle note change for each modality
+const handleNoteChange = (modalityId, note) => {
+  setStudentData((prevData) => ({
+    ...prevData,
+    notes: {
+      ...prevData.notes,
+      [modalityId]: note,
+    },
+  }));
+};
 
   const fetchModalities = (elementId) => {
     setLoadingModalities(true);
     axios
       .get(`http://localhost:8080/api/element/modes/${elementId}`)
       .then((response) => {
+
         const transformedData = response.data.map((modality, index) => ({
           id: index + 1,
           ...modality,
         }));
+
+      const modalityIds = transformedData.map(modality => modality.idmodalite);
+      setModalitiesId(modalityIds); // Store all idmodalite values
+
         setModalities(transformedData);
       })
       .catch((error) => {
@@ -82,6 +139,7 @@ const SemestersList = () => {
     fetchModalities(currentElement.idElement);
     setOpenModal(true);
   };
+  
 
   const columns = [
     { field: 'cneEtudiant', headerName: "CNE", width: 150 },
@@ -113,30 +171,6 @@ const SemestersList = () => {
 
   const handleCloseModal = () => setOpenModal(false);
 
-  const handleSubmit = async () => {
-    if (!currentElement || !studentData.modality || !studentData.note) {
-      alert("Please fill all required fields");
-      return;
-    }
-
-    try {
-      const noteData = {
-        elementId: currentElement.idElement,
-        studentId: studentData.studentId,
-        professorId: professorId,
-        note: parseFloat(studentData.note),
-        modalityId: studentData.modality,
-      };
-
-      await axios.post('http://localhost:8080/api/notes/add', noteData);
-      handleCloseModal();
-      // Refresh students list
-      fetchStudents();
-    } catch (error) {
-      console.error("Error saving note:", error);
-      alert("Failed to save note");
-    }
-  };
 
   // Fetch Semesters
   useEffect(() => {
@@ -179,33 +213,46 @@ const SemestersList = () => {
   };
 
   const fetchElements = async (filiereId) => {
-    setLoadingElements(true);
+    setLoadingElements(true); // Start loading state
+    setElements([]); // Reset elements
+    setStudents([]); // Reset students
+    setCurrentElement(null); // Reset current element
     setSelectedFiliereId(filiereId);
-    setElements([]);
-    setStudents([]);
-    setCurrentElement(null);
 
     try {
       const response = await axios.get(
-        'http://localhost:8080/api/element/findByFiliereAndProfessorAsMap',
-        { params: { filiereId, professorId } }
+        'http://localhost:8080/api/element/elements/findByProfessorFiliereSemester',
+        {
+          params: {
+            filiereId,
+            professorId,
+            semesterId: selectedSemester?.id, // Ensure semesterId is passed
+          },
+        }
       );
       setElements(response.data);
-    } catch (err) {
-      console.error("Failed to fetch elements:", err);
-      setError("Failed to fetch elements.");
+    } catch (error) {
+      console.error("Failed to fetch elements:", error);
+      setError("Failed to fetch elements."); // Handle error
     } finally {
-      setLoadingElements(false);
+      setLoadingElements(false); // End loading state
     }
   };
 
+  //fetch studets
   const fetchStudents = async (element) => {
-    if (!selectedSemester || !selectedFiliereId) {
-      alert("Please select both semester and filiere first");
+    // Save the selected element
+    setCurrentElement(element);
+    if (!selectedSemester) {
+      alert("Please select a semester.");
       return;
     }
 
-    setCurrentElement(element);
+    if (!selectedFiliereId) {
+      alert("Please select a Filiere.");
+      return;
+    }
+
     let niveau;
     if (["S1", "S2"].includes(selectedSemester.name)) {
       niveau = "1ère année";
@@ -231,6 +278,7 @@ const SemestersList = () => {
       setLoadingStudents(false);
     }
   };
+
 
   const handleSemesterSelection = (semester) => {
     setSelectedSemester(semester);
@@ -328,36 +376,28 @@ const SemestersList = () => {
       <Dialog open={openModal} onClose={handleCloseModal}>
         <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
         <DialogContent>
-          {modalities.length > 0 ? (
-            modalities.map((modality) => (
-              <TextField
-                key={modality.id}
-                label={`Note for ${modality.nomMode}`}
-                type="number"
-                value={studentData.notes?.[modality.id] || ''}
-                onChange={(e) =>
-                  setStudentData((prevData) => ({
-                    ...prevData,
-                    notes: {
-                      ...prevData.notes,
-                      [modality.id]: e.target.value,
-                    },
-                  }))
-                }
-                fullWidth
-                margin="normal"
-                inputProps={{ min: 0, max: 20, step: 0.25 }}
-              />
-            ))
-          ) : (
-            <CircularProgress />
-          )}
-        </DialogContent>
+      {modalities.length > 0 ? (
+        modalities.map((modality) => (
+          <TextField
+            key={modality.id}
+            label={`Note for ${modality.nomMode}`}
+            type="number"
+            value={studentData.notes?.[modality.id] || ''}
+            onChange={(e) => handleNoteChange(modality.id, e.target.value)}
+            fullWidth
+            margin="normal"
+            inputProps={{ min: 0, max: 20, step: 0.25 }}
+          />
+        ))
+      ) : (
+        <CircularProgress />
+      )}
+    </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button onClick={handleSaveNotes} color="primary">
             Save
           </Button>
         </DialogActions>
