@@ -152,7 +152,7 @@ const ModesEvaluation = () => {
 
     const columnsModes = [
         { field: "idModeEval", headerName: "ID", flex: 0.5 },
-        { field: "nomMode", headerName: "Nom", flex: 1 },
+        { field: "nomMode", headerName: "Name", flex: 1 },
         { field: "coefficient", headerName: "Coefficient", flex: 1 },
         {
             field: "actions",
@@ -217,9 +217,9 @@ const ModesEvaluation = () => {
 
     return (
         <Box m="20px">
-            <Header title="Modalités d'Évaluation" subtitle="Gérer les modalités d'évaluation" />            <Box m="20px" style={{ backgroundColor: '#f9f9f9', borderRadius: '15px', padding: '20px', boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)' }}>
+            <Header title="Evaluation Modalities" subtitle="Manage Evaluation Modalities" />            <Box m="20px" style={{ backgroundColor: '#f9f9f9', borderRadius: '15px', padding: '20px', boxShadow: '2px 8px 8px rgba(26, 24, 24, 0.1)' }}>
                 <Box display="flex" gap="20px" mb="20px">
-                    <Box flex={1} width="75%" display="flex" flexDirection="column" gap="20px">
+                    <Box flex={1} width="76%" display="flex" flexDirection="column" gap="20px">
                         <Box display="flex" gap="20px">
                             <Box flex={1} style={{ display: 'flex', flexDirection: 'column' }}>
                                 <label htmlFor="nomMode" style={labelStyle}>Mode:</label>
@@ -245,7 +245,7 @@ const ModesEvaluation = () => {
                             </Box>
                             <Box flex={1} display="flex" justifyContent="center" alignItems="center">
                                 <button style={buttonStyle} onClick={editingMode ? handleUpdate : addMode} type="submit">
-                                    {editingMode ? "Mettre à jour" : "Ajouter"}
+                                    {editingMode ? "Update" : "Add"}
                                 </button>
                             </Box>
                         </Box>
@@ -257,8 +257,8 @@ const ModesEvaluation = () => {
 
                 </Box>
             </Box>
-            <Box display="flex" gap="20px" height="75vh">
-                <Box flex={1} sx={{ maxWidth: "70%" }}>
+            <Box display="flex" justifyContent="center" alignItems="center" height="75vh">
+                <Box flex={1} sx={{ maxWidth: "90%" }}>
                     <DataGrid
                         rows={modesList}
                         columns={columnsModes}

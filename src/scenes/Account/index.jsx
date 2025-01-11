@@ -17,6 +17,7 @@ import {
     useTheme
 } from "@mui/material";
 
+
 const colors = {
     gray: {
         700: '#4a4a4a',
@@ -27,6 +28,7 @@ const colors = {
         500: '#34c759',
     },
 };
+
 const AddCompteUtilisateur = () => {
     const [formData, setFormData] = useState({
         nomUser: "",
@@ -154,42 +156,41 @@ const AddCompteUtilisateur = () => {
             });
     }
 
-
     const columnsComptes = [
-        { field: "id", headerName: "ID Utilisateur", flex: 0.5 },
-        { field: "nomUser", headerName: "Nom", flex: 1 },
-        { field: "prenomUser", headerName: "Prénom", flex: 1 },
+        { field: "id", headerName: "User ID", flex: 0.5 },
+        { field: "nomUser", headerName: "First Name", flex: 1 },
+        { field: "prenomUser", headerName: "Last Name", flex: 1 },
         { field: "email", headerName: "Email", flex: 1 },
         { field: "password", headerName: "Password", flex: 1 },
         {
             field: "codeProf",
-            headerName: "Code Professeur",
+            headerName: "Professor Code",
             flex: 1,
             renderCell: (params) => {
-                return params.row.role === "Professeur" ? (
+                return params.row.role === "Professor" ? (
                     params.row.codeProf
                 ) : (
                     <Box sx={{ fontStyle: "italic", color: "gray" }}>
-                        Non applicable
+                        Not applicable
                     </Box>
                 );
             },
         },
         {
             field: "specialite",
-            headerName: "Spécialité",
+            headerName: "Specialty",
             flex: 1,
             renderCell: (params) => {
-                return params.row.role === "Professeur" ? (
+                return params.row.role === "Professor" ? (
                     params.row.specialite
                 ) : (
                     <Box sx={{ fontStyle: "italic", color: "gray" }}>
-                        Non applicable
+                        Not applicable
                     </Box>
                 );
             },
         },
-        { field: "role", headerName: "Rôle", flex: 1 },
+        { field: "role", headerName: "Role", flex: 1 },
         {
             field: "actions",
             headerName: "Actions",
@@ -212,6 +213,7 @@ const AddCompteUtilisateur = () => {
             ),
         },
     ];
+
     const handleEdit = (row) => {
         setFormData({
             id: row.id,
@@ -257,8 +259,8 @@ const AddCompteUtilisateur = () => {
 
     const buttonStyle = {
         padding: '12px 20px',
-        backgroundColor: 'rgba(24, 249, 4, 0.2)',
-        color: '#fff',
+        backgroundColor: 'rgba(76, 168, 67, 0.35)',
+        color: '#ffff',
         border: 'none',
         borderRadius: '8px',
         cursor: 'pointer',
@@ -280,7 +282,7 @@ const AddCompteUtilisateur = () => {
                 }}
             >
                 <Typography variant="h4" gutterBottom>
-                    {editingMode ? "Modifier le Compte Utilisateur" : "Ajouter un Compte Utilisateur"}
+                    {editingMode ? "Edit User Account" : "Add User Account"}
                 </Typography>
                 <form onSubmit={editingMode ? handleUpdate : handleSubmit} className="formaccount">
                     <Grid container spacing={2}>
@@ -288,7 +290,7 @@ const AddCompteUtilisateur = () => {
                         <Grid item xs={4}>
                             <TextField
                                 fullWidth
-                                label="Nom"
+                                label="First Name"
                                 name="nomUser"
                                 value={formData.nomUser}
                                 onChange={handleChange}
@@ -298,7 +300,7 @@ const AddCompteUtilisateur = () => {
                         <Grid item xs={4}>
                             <TextField
                                 fullWidth
-                                label="Prénom"
+                                label="Last Name"
                                 name="prenomUser"
                                 value={formData.prenomUser}
                                 onChange={handleChange}
@@ -308,7 +310,7 @@ const AddCompteUtilisateur = () => {
                         <Grid item xs={4}>
                             <TextField
                                 fullWidth
-                                label="Code Professeur"
+                                label="Professor Code"
                                 name="codeProf"
                                 value={formData.codeProf}
                                 onChange={(e) => {
@@ -342,7 +344,7 @@ const AddCompteUtilisateur = () => {
                             <TextField
                                 fullWidth
                                 type="password"
-                                label="Mot de passe"
+                                label="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
@@ -353,7 +355,7 @@ const AddCompteUtilisateur = () => {
                         <Grid item xs={4}>
                             <TextField
                                 fullWidth
-                                label="Spécialité"
+                                label="Specialty"
                                 name="specialite"
                                 value={formData.specialite}
                                 onChange={handleChange}
@@ -365,7 +367,7 @@ const AddCompteUtilisateur = () => {
                         <Grid item xs={12}>
                             <TextField
                                 fullWidth
-                                label="Rôle"
+                                label="Role"
                                 name="role"
                                 value="Professeur" // Valeur fixe "Professeur"
                                 onChange={handleChange}
@@ -377,7 +379,7 @@ const AddCompteUtilisateur = () => {
                         {/* Bouton d'envoi */}
                         <Grid item xs={12}>
                             <Button type="submit" variant="contained" color="primary" fullWidth style={buttonStyle}>
-                                {editingMode ? "Mettre à jour" : "Ajouter"}
+                                {editingMode ? "Update" : "Add"}
                             </Button>
                         </Grid>
                     </Grid>

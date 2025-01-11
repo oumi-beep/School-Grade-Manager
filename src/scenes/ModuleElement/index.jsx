@@ -44,8 +44,8 @@ const ModuleElement = () => {
                 console.error('Erreur lors de la récupération des données :', error);
             }
         };
-
         fetchData();
+
     }, []);
 
     const [elementsListModuleID, setElementsListModuleID] = useState([]);
@@ -185,7 +185,7 @@ const ModuleElement = () => {
             nomFiliere: module.nomFiliere,
             elementsNom: "", // Temporarily emptyv
             elementsCoeff: "", // Temporarily empty
-        }); 
+        });
 
         try {
             // Récupérer les éléments associés à ce module depuis l'API
