@@ -8,7 +8,7 @@ import { IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
-import { MenuItem, Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
+import { MenuItem, DialogContentText,Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
 
 
 const SemestersList = () => {
@@ -51,41 +51,135 @@ const SemestersList = () => {
   
   //
   const handleSaveNotes = async () => {
-    // Create a List of Maps where each map contains key-value pairs
-    const notesList = modalities.map((modality) => ({
-      studentId: studentData.idEtudiant,  // Student ID
-      elementId: currentElement.idElement,  // Element ID
-      modalityId: modality.idModeEval,  // Modality ID
-      note: studentData.notes?.[modality.id] || '',  // The note entered for this modality
-    }));
+    const notesList = modalities
+      .map((modality) => ({
+        studentId: studentData.idEtudiant,  
+        elementId: currentElement.idElement,  
+        modalityId: modality.idModeEval, 
+        note: studentData.notes?.[modality.idModeEval]  ,  
+      }))
+      .filter(note => note.note !== '' || note.note === 0); 
   
-    console.log(notesList);
+    console.log("Notes List:", notesList);
   
     try {
-      // Send the notesList (List of Maps) to the backend
-      const response = await fetch('http://localhost:8080/api/notes/addnoteModalite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(notesList),  // Sending the List<Map>
-      });
+      const checkResponse = await axios.get(`http://localhost:8080/api/notes/checkNotes/${studentData.idEtudiant}/${currentElement.idElement}`);
   
-      // Handle response from the backend
-      if (response.ok) {
-        alert('Notes saved successfully');
+      if (checkResponse.data && checkResponse.data.exists) {
+        const updateResponse = await fetch('http://localhost:8080/api/notes/updateNoteModalite', {
+          method: 'PUT',  
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notesList), 
+        });
+  
+        if (updateResponse.ok) {
+          alert('Notes updated successfully');
+        } else {
+          const errorData = await updateResponse.json();
+          alert('Failed to update notes: ' + errorData.message || 'Unknown error');
+        }
       } else {
-        alert('Failed to save notes');
+        const addResponse = await fetch('http://localhost:8080/api/notes/addnoteModalite', {
+          method: 'POST',  
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notesList), 
+        });
+        if (addResponse.ok) {
+          alert('Notes saved successfully');
+        } else {
+          const errorData = await addResponse.json();
+          alert('Failed to save notes: ' + errorData.message || 'Unknown error');
+        }
       }
     } catch (error) {
       console.error('Error saving notes:', error);
       alert('An error occurred while saving notes');
     }
-  
-    // Close the modal after saving
     setOpenModal(false);
   };
   
+  
+  const fetchNotesForStudent = async (studentId, elementId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/notes/getNotes/${studentId}/${elementId}`);
+  
+      console.log("Raw API Response:", response.data);
+  
+      if (response.data && typeof response.data === "object") {
+        const notes = Object.keys(response.data).reduce((acc, modalityId) => {
+          const note = response.data[modalityId];
+          const modalityIdInt = parseInt(modalityId); 
+          acc[modalityIdInt] = note;
+          return acc;
+        }, {});
+  
+        console.log("Processed Notes with idModalite as Key:", notes);
+  
+        setStudentData((prevData) => ({
+          ...prevData,
+          notes: notes,
+        }));
+      } else {
+        console.log("Unexpected response format:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching notes for student:", error);
+    }
+  };
+  
+  const handleNoteInput = (modalityId, value) => {
+    const numericValue = parseFloat(value);
+  
+    if ( numericValue < 0 || numericValue > 20) {
+      return;
+    }
+    setStudentData((prevData) => ({
+      ...prevData,
+      notes: {
+        ...prevData.notes,
+        [modalityId]: numericValue, 
+      },
+    }));
+  
+    if (numericValue === 0 || numericValue === 20) {
+      setPendingNote({ modalityId, value: numericValue });
+      setConfirmOpen(true);
+    } else {
+      handleNoteChange(modalityId, numericValue);
+    }
+  };
+  
+  
+  const handleOpenModal = async (student) => {
+    if (!currentElement) {
+      alert("Please select an element first");
+      return;
+    }
+  
+    setStudentData({
+      name: student.nomEtudiant,
+      idEtudiant: student.idEtudiant,
+      surname: student.prenomEtudiant,
+      cse: student.cneEtudiant,
+      modality: '',
+      note: '',
+    });
+  
+    try {
+      await Promise.all([
+        fetchModalities(currentElement.idElement),
+        fetchNotesForStudent(student.idEtudiant, currentElement.idElement),
+      ]);
+  
+      setOpenModal(true);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
   
 
 // Handle note change for each modality
@@ -101,13 +195,14 @@ const handleNoteChange = (modalityId, note) => {
 };
 
   const fetchModalities = (elementId) => {
+    
     setLoadingModalities(true);
     axios
       .get(`http://localhost:8080/api/element/modes/${elementId}`)
       .then((response) => {
 
         const transformedData = response.data.map(({ idModeEval, nomMode }, index) => ({
-          id: index + 1, // This will assign the correct index, starting from 1
+          id: index + 1,
           idModeEval,
           nomMode,
         }));
@@ -124,26 +219,6 @@ const handleNoteChange = (modalityId, note) => {
       });
   };
 
-  const handleOpenModal = (student) => {
-    if (!currentElement) {
-      alert("Please select an element first");
-      return;
-    }
-
-
-    setStudentData({
-      name: student.nomEtudiant,
-      idEtudiant:student.idEtudiant,
-      surname: student.prenomEtudiant,
-      cse: student.cneEtudiant,
-      modality: '',
-      note: '',
-    });
-
-    fetchModalities(currentElement.idElement);
-    setOpenModal(true);
-  };
-  
 
   const columns = [
     { field: 'cneEtudiant', headerName: "CNE", width: 150 },
@@ -172,6 +247,24 @@ const handleNoteChange = (modalityId, note) => {
       ),
     },
   ];
+
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingNote, setPendingNote] = useState(null);
+  
+    
+  
+    const handleConfirm = () => {
+      if (pendingNote) {
+        handleNoteChange(pendingNote.modalityId, pendingNote.value);
+        setPendingNote(null);
+      }
+      setConfirmOpen(false);
+    };
+  
+    const handleCancel = () => {
+      setPendingNote(null);
+      setConfirmOpen(false);
+    };
 
   const handleCloseModal = () => setOpenModal(false);
 
@@ -378,25 +471,44 @@ const handleNoteChange = (modalityId, note) => {
       </div>
 
       <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
-        <DialogContent>
-      {modalities.length > 0 ? (
-        modalities.map((modality) => (
-          <TextField
-            key={modality.id}
-            label={`Note for ${modality.nomMode}`}
-            type="number"
-            value={studentData.notes?.[modality.id] || ''}
-            onChange={(e) => handleNoteChange(modality.id, e.target.value)}
-            fullWidth
-            margin="normal"
-            inputProps={{ min: 0, max: 20, step: 0.25 }}
-          />
-        ))
-      ) : (
-        <CircularProgress />
-      )}
-    </DialogContent>
+      <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
+<DialogContent>
+  {modalities.length > 0 ? (
+    modalities.map((modality) => (
+      <TextField
+        key={modality.id}
+        label={`Note for ${modality.nomMode}`}
+        type="number"
+        value={studentData.notes?.[modality.idModeEval] ?? ''}
+        onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
+        fullWidth
+        margin="normal"
+        inputProps={{ min: 0, max: 20, step: 0.25 }}
+      />
+    ))
+  ) : (
+    <CircularProgress />
+  )}
+</DialogContent>
+
+{/* Confirmation Dialog */}
+<Dialog open={confirmOpen} onClose={handleCancel}>
+  <DialogTitle>Confirmation Required</DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      A note of {pendingNote?.value} was entered. Are you sure you want to proceed?
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCancel} color="secondary">
+      Cancel
+    </Button>
+    <Button onClick={handleConfirm} color="primary">
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
+
         <DialogActions>
           <Button onClick={handleCloseModal} color="primary">
             Cancel
