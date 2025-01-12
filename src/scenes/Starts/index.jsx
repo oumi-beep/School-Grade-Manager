@@ -68,7 +68,7 @@ const SemestersList = () => {
 
   const updateStudentList = async () => {
     if (currentElement && selectedFiliereId) {
-      await fetchStudents(currentElement);
+      await fetchStudents(currentElement, currentElement.idElement);
     }
   };
 
