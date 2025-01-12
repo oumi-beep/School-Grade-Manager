@@ -26,7 +26,6 @@ const SemestersList = () => {
   const [selectedElementId, setSelectedElementId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [ModalitiesId, setModalitiesId] = useState([]);
-  const [ModalitiesId, setModalitiesId] = useState(null);
   const [studentData, setStudentData] = useState({
     name: '',
     idEtudiant: '',
@@ -90,15 +89,6 @@ const SemestersList = () => {
 
 
   // Handle note change for each modality
-  const handleNoteChange = (modalityId, note) => {
-    setStudentData((prevData) => ({
-      ...prevData,
-      notes: {
-        ...prevData.notes,
-        [modalityId]: note,
-      },
-    }));
-  };
   // Handle note change for each modality
   const handleNoteChange = (modalityId, note) => {
     setStudentData((prevData) => ({
