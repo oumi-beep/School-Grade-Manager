@@ -7,7 +7,7 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
+import { Dialog, DialogActions,Checkbox ,FormControlLabel, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
 import { MenuItem, DialogContentText,Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
 
 
@@ -47,34 +47,50 @@ const SemestersList = () => {
     primary: ['#1976d2', '#1565c0'],
     gray: ['#616161', '#757575'],
   };
+
+  const updateStudentList = async () => {
+    if (currentElement && selectedFiliereId) {
+      await fetchStudents(currentElement);
+    }
+  };
     
-  
+  const calculateElementNote = async (studentId, elementId, filiereId) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/notes/calculate/${studentId}/${elementId}/${filiereId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error calculating note:", error);
+      throw error;
+    }
+  };
+
   //
-  const handleSaveNotes = async () => {
+    const handleSaveNotes = async () => {
     const notesList = modalities
       .map((modality) => ({
-        studentId: studentData.idEtudiant,  
-        elementId: currentElement.idElement,  
-        modalityId: modality.idModeEval, 
-        note: studentData.notes?.[modality.idModeEval]  ,  
+        studentId: studentData.idEtudiant,
+        elementId: currentElement.idElement,
+        modalityId: modality.idModeEval,
+        note: studentData.notes?.[modality.idModeEval],
       }))
       .filter(note => note.note !== '' || note.note === 0);
 
     console.log("Notes List:", notesList);
-    console.log("Notes List:", notesList);
-  
+
     try {
       const checkResponse = await axios.get(`http://localhost:8080/api/notes/checkNotes/${studentData.idEtudiant}/${currentElement.idElement}`);
-  
+
       if (checkResponse.data && checkResponse.data.exists) {
         const updateResponse = await fetch('http://localhost:8080/api/notes/updateNoteModalite', {
-          method: 'PUT',  
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(notesList), 
+          body: JSON.stringify(notesList),
         });
-  
+
         if (updateResponse.ok) {
           alert('Notes updated successfully');
         } else {
@@ -83,11 +99,11 @@ const SemestersList = () => {
         }
       } else {
         const addResponse = await fetch('http://localhost:8080/api/notes/addnoteModalite', {
-          method: 'POST',  
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(notesList), 
+          body: JSON.stringify(notesList),
         });
         if (addResponse.ok) {
           alert('Notes saved successfully');
@@ -96,30 +112,42 @@ const SemestersList = () => {
           alert('Failed to save notes: ' + errorData.message || 'Unknown error');
         }
       }
+
+      await calculateElementNote(
+        studentData.idEtudiant,
+        currentElement.idElement,
+        selectedFiliereId
+      );
+
+      // Mettre à jour l'affichage du tableau
+      await updateStudentList();
+
+      alert('Notes saved and calculated successfully');
+      setOpenModal(false);
     } catch (error) {
       console.error('Error saving notes:', error);
       alert('An error occurred while saving notes');
     }
     setOpenModal(false);
   };
-  
+
   
   const fetchNotesForStudent = async (studentId, elementId) => {
     try {
       const response = await axios.get(`http://localhost:8080/api/notes/getNotes/${studentId}/${elementId}`);
-  
+
       console.log("Raw API Response:", response.data);
-  
+
       if (response.data && typeof response.data === "object") {
         const notes = Object.keys(response.data).reduce((acc, modalityId) => {
           const note = response.data[modalityId];
-          const modalityIdInt = parseInt(modalityId); 
+          const modalityIdInt = parseInt(modalityId);
           acc[modalityIdInt] = note;
           return acc;
         }, {});
-  
+
         console.log("Processed Notes with idModalite as Key:", notes);
-  
+
         setStudentData((prevData) => ({
           ...prevData,
           notes: notes,
@@ -131,7 +159,6 @@ const SemestersList = () => {
       console.error("Error fetching notes for student:", error);
     }
   };
-  
   const handleNoteInput = (modalityId, value) => {
     const numericValue = parseFloat(value);
   
@@ -180,6 +207,19 @@ const SemestersList = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+  };
+  const handleAbsenceChange = (modalityId, isAbsent) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      absences: {
+        ...prevData.absences,
+        [modalityId]: isAbsent,
+      },
+      notes: {
+        ...prevData.notes,
+        [modalityId]: isAbsent ? 0 : prevData.notes[modalityId],
+      },
+    }));
   };
   
 
@@ -472,42 +512,50 @@ const SemestersList = () => {
 
       <Dialog open={openModal} onClose={handleCloseModal}>
       <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
-<DialogContent>
-  {modalities.length > 0 ? (
-    modalities.map((modality) => (
-      <TextField
-        key={modality.id}
-        label={`Note for ${modality.nomMode}`}
-        type="number"
-        value={studentData.notes?.[modality.idModeEval] ?? ''}
-        onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
-        fullWidth
-        margin="normal"
-        inputProps={{ min: 0, max: 20, step: 0.25 }}
-      />
-    ))
-  ) : (
-    <CircularProgress />
-  )}
-</DialogContent>
-
-{/* Confirmation Dialog */}
-<Dialog open={confirmOpen} onClose={handleCancel}>
-  <DialogTitle>Confirmation Required</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      A note of {pendingNote?.value} was entered. Are you sure you want to proceed?
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCancel} color="secondary">
-      Cancel
-    </Button>
-    <Button onClick={handleConfirm} color="primary">
-      Confirm
-    </Button>
-  </DialogActions>
-</Dialog>
+      <DialogContent>
+          {modalities.length > 0 ? (
+            modalities.map((modality) => (
+              <div key={modality.id}>
+                <TextField
+                  label={`Note for ${modality.nomMode}`}
+                  type="number"
+                  value={studentData.notes?.[modality.idModeEval] ?? ''}
+                  onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
+                  fullWidth
+                  margin="normal"
+                  inputProps={{ min: 0, max: 20, step: 0.25, disabled: studentData.absences?.[modality.idModeEval] }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={studentData.absences?.[modality.idModeEval] ?? false}
+                      onChange={(e) => handleAbsenceChange(modality.idModeEval, e.target.checked)}
+                    />
+                  }
+                  label="Absent"
+                />
+              </div>
+            ))
+          ) : (
+            <CircularProgress />
+          )}
+        </DialogContent>
+        <Dialog open={confirmOpen} onClose={handleCancel}>
+          <DialogTitle>Confirmation Required</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              A note of {pendingNote?.value} was entered. Are you sure you want to proceed?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancel} color="secondary">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirm} color="primary">
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <DialogActions>
           <Button onClick={handleCloseModal} color="primary">
@@ -518,6 +566,7 @@ const SemestersList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
 
     </>
   );
