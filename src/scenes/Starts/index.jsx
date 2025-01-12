@@ -81,6 +81,7 @@ const SemestersList = () => {
       .filter(note => note.note !== '' || note.note === 0);
 
     console.log("Notes List:", notesList);
+    console.log("Notes List:", notesList);
 
     try {
       const checkResponse = await axios.get(`http://localhost:8080/api/notes/checkNotes/${studentData.idEtudiant}/${currentElement.idElement}`);
@@ -214,7 +215,6 @@ const SemestersList = () => {
   };
 
 
-  // Handle note change for each modality
   const handleNoteChange = (modalityId, note) => {
     setStudentData((prevData) => ({
       ...prevData,
