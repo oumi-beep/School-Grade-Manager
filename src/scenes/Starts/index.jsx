@@ -49,6 +49,26 @@ const SemestersList = () => {
   };
 
 
+
+  const calculateElementNote = async (studentId, elementId, filiereId) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/notes/calculate/${studentId}/${elementId}/${filiereId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error calculating note:", error);
+      throw error;
+    }
+  };
+
+  const updateStudentList = async () => {
+    if (currentElement && selectedFiliereId) {
+      await fetchStudents(currentElement);
+    }
+  };
+
+
   //
   const handleSaveNotes = async () => {
     const notesList = modalities
@@ -95,6 +115,18 @@ const SemestersList = () => {
           alert('Failed to save notes: ' + errorData.message || 'Unknown error');
         }
       }
+
+      await calculateElementNote(
+        studentData.idEtudiant,
+        currentElement.idElement,
+        selectedFiliereId
+      );
+
+      // Mettre à jour l'affichage du tableau
+      await updateStudentList();
+
+      alert('Notes saved and calculated successfully');
+      setOpenModal(false);
     } catch (error) {
       console.error('Error saving notes:', error);
       alert('An error occurred while saving notes');
