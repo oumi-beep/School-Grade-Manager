@@ -25,7 +25,7 @@ const SemestersList = () => {
   const [error, setError] = useState(null);
   const [selectedElementId, setSelectedElementId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [ModalitiesId,setModalitiesId]=useState([]);
+  const [ModalitiesId, setModalitiesId] = useState([]);
   const [studentData, setStudentData] = useState({
     name: '',
     surname: '',
@@ -46,20 +46,20 @@ const SemestersList = () => {
     primary: ['#1976d2', '#1565c0'],
     gray: ['#616161', '#757575'],
   };
-    
-  
+
+
   //
   const handleSaveNotes = async () => {
     // Create a List of Maps where each map contains key-value pairs
     const notesList = modalities.map((modality) => ({
       studentId: studentData.cse,  // Student ID
       elementId: currentElement.idElement,  // Element ID
-      modalityId: modality.id,  // Modality ID
+      modalityId: modality.idModeEval,  // Modality ID
       note: studentData.notes?.[modality.id] || '',  // The note entered for this modality
     }));
-  
+
     console.log(notesList);
-  
+
     try {
       // Send the notesList (List of Maps) to the backend
       const response = await fetch('http://localhost:8080/api/notes/addnoteModalite', {
@@ -69,7 +69,7 @@ const SemestersList = () => {
         },
         body: JSON.stringify(notesList),  // Sending the List<Map>
       });
-  
+
       // Handle response from the backend
       if (response.ok) {
         alert('Notes saved successfully');
@@ -80,23 +80,23 @@ const SemestersList = () => {
       console.error('Error saving notes:', error);
       alert('An error occurred while saving notes');
     }
-  
+
     // Close the modal after saving
     setOpenModal(false);
   };
-  
-  
 
-// Handle note change for each modality
-const handleNoteChange = (modalityId, note) => {
-  setStudentData((prevData) => ({
-    ...prevData,
-    notes: {
-      ...prevData.notes,
-      [modalityId]: note,
-    },
-  }));
-};
+
+
+  // Handle note change for each modality
+  const handleNoteChange = (modalityId, note) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      notes: {
+        ...prevData.notes,
+        [modalityId]: note,
+      },
+    }));
+  };
 
   const fetchModalities = (elementId) => {
     setLoadingModalities(true);
@@ -109,8 +109,8 @@ const handleNoteChange = (modalityId, note) => {
           ...modality,
         }));
 
-      const modalityIds = transformedData.map(modality => modality.idmodalite);
-      setModalitiesId(modalityIds); // Store all idmodalite values
+        const modalityIds = transformedData.map(modality => modality.idmodalite);
+        setModalitiesId(modalityIds); // Store all idmodalite values
 
         setModalities(transformedData);
       })
@@ -139,7 +139,7 @@ const handleNoteChange = (modalityId, note) => {
     fetchModalities(currentElement.idElement);
     setOpenModal(true);
   };
-  
+
 
   const columns = [
     { field: 'cneEtudiant', headerName: "CNE", width: 150 },
@@ -290,18 +290,18 @@ const handleNoteChange = (modalityId, note) => {
 
   return (
     <>
-     <div className="semesterss-container">
-      <h1>Semesters Assigned</h1>
-      <ul>
-        {semesters.map((semester) => (
-          <li key={semester.id}>
-            <button onClick={() => handleSemesterSelection(semester)}>
-              <strong>{semester.name}</strong>
-            </button>
-          </li>
-        ))}
-      </ul>
- 
+      <div className="semesterss-container">
+        <h1>Semesters Assigned</h1>
+        <ul>
+          {semesters.map((semester) => (
+            <li key={semester.id}>
+              <button onClick={() => handleSemesterSelection(semester)}>
+                <strong>{semester.name}</strong>
+              </button>
+            </li>
+          ))}
+        </ul>
+
         {loadingFilieres && <p>Loading filières...</p>}
         {filieres.length > 0 && !loadingFilieres && (
           <div className="filiere-container">
@@ -376,23 +376,23 @@ const handleNoteChange = (modalityId, note) => {
       <Dialog open={openModal} onClose={handleCloseModal}>
         <DialogTitle>Enter Notes for {studentData.name} {studentData.surname}</DialogTitle>
         <DialogContent>
-      {modalities.length > 0 ? (
-        modalities.map((modality) => (
-          <TextField
-            key={modality.id}
-            label={`Note for ${modality.nomMode}`}
-            type="number"
-            value={studentData.notes?.[modality.id] || ''}
-            onChange={(e) => handleNoteChange(modality.id, e.target.value)}
-            fullWidth
-            margin="normal"
-            inputProps={{ min: 0, max: 20, step: 0.25 }}
-          />
-        ))
-      ) : (
-        <CircularProgress />
-      )}
-    </DialogContent>
+          {modalities.length > 0 ? (
+            modalities.map((modality) => (
+              <TextField
+                key={modality.id}
+                label={`Note for ${modality.nomMode}`}
+                type="number"
+                value={studentData.notes?.[modality.id] || ''}
+                onChange={(e) => handleNoteChange(modality.id, e.target.value)}
+                fullWidth
+                margin="normal"
+                inputProps={{ min: 0, max: 20, step: 0.25 }}
+              />
+            ))
+          ) : (
+            <CircularProgress />
+          )}
+        </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal} color="primary">
             Cancel
