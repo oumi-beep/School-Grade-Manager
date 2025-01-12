@@ -7,8 +7,11 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { Dialog, DialogActions,Checkbox ,FormControlLabel, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
-import { MenuItem, DialogContentText,Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
+import { MenuItem, DialogContentText, Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+
 
 
 const SemestersList = () => {
@@ -33,6 +36,7 @@ const SemestersList = () => {
     cse: '',
     evaluationMode: '',
     modality: '',
+    absent: '',
     note: '',
   });
 
@@ -73,7 +77,8 @@ const SemestersList = () => {
         studentId: studentData.idEtudiant,
         elementId: currentElement.idElement,
         modalityId: modality.idModeEval,
-        note: studentData.notes?.[modality.idModeEval],
+        note: studentData.absences?.[modality.idModeEval] ? 0 : studentData.notes?.[modality.idModeEval],
+        absent: studentData.absences?.[modality.idModeEval] ?? false,
       }))
       .filter(note => note.note !== '' || note.note === 0);
 
@@ -208,20 +213,7 @@ const SemestersList = () => {
       console.error("Error fetching data:", error);
     }
   };
-  const handleAbsenceChange = (modalityId, isAbsent) => {
-    setStudentData((prevData) => ({
-      ...prevData,
-      absences: {
-        ...prevData.absences,
-        [modalityId]: isAbsent,
-      },
-      notes: {
-        ...prevData.notes,
-        [modalityId]: isAbsent ? 0 : prevData.notes[modalityId],
-      },
-    }));
-  };
-  
+
 
   const handleNoteChange = (modalityId, note) => {
     setStudentData((prevData) => ({
@@ -259,7 +251,19 @@ const SemestersList = () => {
       });
   };
 
-
+  const handleAbsenceChange = (modalityId, isAbsent) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      absences: {
+        ...prevData.absences,
+        [modalityId]: isAbsent,
+      },
+      notes: {
+        ...prevData.notes,
+        [modalityId]: isAbsent ? 0 : prevData.notes[modalityId],
+      },
+    }));
+  };
   const columns = [
     { field: 'cneEtudiant', headerName: "CNE", width: 150 },
     { field: 'nomEtudiant', headerName: 'Last Name', width: 150 },
@@ -288,23 +292,23 @@ const SemestersList = () => {
     },
   ];
 
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [pendingNote, setPendingNote] = useState(null);
-  
-    
-  
-    const handleConfirm = () => {
-      if (pendingNote) {
-        handleNoteChange(pendingNote.modalityId, pendingNote.value);
-        setPendingNote(null);
-      }
-      setConfirmOpen(false);
-    };
-  
-    const handleCancel = () => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingNote, setPendingNote] = useState(null);
+
+
+
+  const handleConfirm = () => {
+    if (pendingNote) {
+      handleNoteChange(pendingNote.modalityId, pendingNote.value);
       setPendingNote(null);
-      setConfirmOpen(false);
-    };
+    }
+    setConfirmOpen(false);
+  };
+
+  const handleCancel = () => {
+    setPendingNote(null);
+    setConfirmOpen(false);
+  };
 
   const handleCloseModal = () => setOpenModal(false);
 
@@ -405,7 +409,7 @@ const SemestersList = () => {
     setLoadingStudents(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}`
+        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${selectedElementId}`
       );
       setStudents(response.data);
     } catch (err) {
