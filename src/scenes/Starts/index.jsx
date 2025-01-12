@@ -136,23 +136,29 @@ const SemestersList = () => {
     setOpenModal(false);
   };
 
-  
   const fetchNotesForStudent = async (studentId, elementId) => {
     try {
       const response = await axios.get(`http://localhost:8080/api/notes/getNotes/${studentId}/${elementId}`);
-
+  
       console.log("Raw API Response:", response.data);
-
+  
       if (response.data && typeof response.data === "object") {
-        const notes = Object.keys(response.data).reduce((acc, modalityId) => {
-          const note = response.data[modalityId];
+        const notes = Object.entries(response.data).reduce((acc, [modalityId, note]) => {
           const modalityIdInt = parseInt(modalityId);
-          acc[modalityIdInt] = note;
+          if (!isNaN(modalityIdInt)) {
+            if (!acc.hasOwnProperty(modalityIdInt)) {
+              acc[modalityIdInt] = note; // Add note if the key is unique
+            } else {
+              console.warn(`Duplicate key detected: ${modalityIdInt}. Overwriting with the latest value.`);
+            }
+          } else {
+            console.warn(`Invalid modalityId: ${modalityId}`);
+          }
           return acc;
         }, {});
-
-        console.log("Processed Notes with idModalite as Key:", notes);
-
+  
+        console.log("Processed Notes with unique idModalite as Key:", notes);
+  
         setStudentData((prevData) => ({
           ...prevData,
           notes: notes,
@@ -164,6 +170,8 @@ const SemestersList = () => {
       console.error("Error fetching notes for student:", error);
     }
   };
+
+  
   const handleNoteInput = (modalityId, value) => {
     const numericValue = parseFloat(value);
   
@@ -284,9 +292,7 @@ const SemestersList = () => {
           >
             <AddIcon />
           </IconButton>
-          <IconButton style={{ color: 'blue' }}>
-            <VisibilityIcon />
-          </IconButton>
+          
         </div>
       ),
     },
@@ -372,6 +378,7 @@ const SemestersList = () => {
         }
       );
       setElements(response.data);
+
     } catch (error) {
       console.error("Failed to fetch elements:", error);
       setError("Failed to fetch elements."); // Handle error
@@ -384,6 +391,7 @@ const SemestersList = () => {
   const fetchStudents = async (element) => {
     // Save the selected element
     setCurrentElement(element);
+    console.log(element);
     if (!selectedSemester) {
       alert("Please select a semester.");
       return;
@@ -409,7 +417,7 @@ const SemestersList = () => {
     setLoadingStudents(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${selectedElementId}`
+        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}`
       );
       setStudents(response.data);
     } catch (err) {
