@@ -9,6 +9,9 @@ import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from "@mui/material";
 import { MenuItem, DialogContentText, Select, InputLabel, FormControl, CircularProgress } from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+
 
 
 const SemestersList = () => {
@@ -33,6 +36,7 @@ const SemestersList = () => {
     cse: '',
     evaluationMode: '',
     modality: '',
+    absent: '',
     note: '',
   });
 
@@ -76,7 +80,8 @@ const SemestersList = () => {
         studentId: studentData.idEtudiant,
         elementId: currentElement.idElement,
         modalityId: modality.idModeEval,
-        note: studentData.notes?.[modality.idModeEval],
+        note: studentData.absences?.[modality.idModeEval] ? 0 : studentData.notes?.[modality.idModeEval],
+        absent: studentData.absences?.[modality.idModeEval] ?? false,
       }))
       .filter(note => note.note !== '' || note.note === 0);
 
@@ -251,7 +256,19 @@ const SemestersList = () => {
       });
   };
 
-
+  const handleAbsenceChange = (modalityId, isAbsent) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      absences: {
+        ...prevData.absences,
+        [modalityId]: isAbsent,
+      },
+      notes: {
+        ...prevData.notes,
+        [modalityId]: isAbsent ? 0 : prevData.notes[modalityId],
+      },
+    }));
+  };
   const columns = [
     { field: 'cneEtudiant', headerName: "CNE", width: 150 },
     { field: 'nomEtudiant', headerName: 'Last Name', width: 150 },
@@ -397,7 +414,7 @@ const SemestersList = () => {
     setLoadingStudents(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}`
+        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${selectedElementId}`
       );
       setStudents(response.data);
     } catch (err) {
@@ -507,16 +524,26 @@ const SemestersList = () => {
         <DialogContent>
           {modalities.length > 0 ? (
             modalities.map((modality) => (
-              <TextField
-                key={modality.id}
-                label={`Note for ${modality.nomMode}`}
-                type="number"
-                value={studentData.notes?.[modality.idModeEval] ?? ''}
-                onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
-                fullWidth
-                margin="normal"
-                inputProps={{ min: 0, max: 20, step: 0.25 }}
-              />
+              <div key={modality.id}>
+                <TextField
+                  label={`Note for ${modality.nomMode}`}
+                  type="number"
+                  value={studentData.notes?.[modality.idModeEval] ?? ''}
+                  onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
+                  fullWidth
+                  margin="normal"
+                  inputProps={{ min: 0, max: 20, step: 0.25, disabled: studentData.absences?.[modality.idModeEval] }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={studentData.absences?.[modality.idModeEval] ?? false}
+                      onChange={(e) => handleAbsenceChange(modality.idModeEval, e.target.checked)}
+                    />
+                  }
+                  label="Absent"
+                />
+              </div>
             ))
           ) : (
             <CircularProgress />
