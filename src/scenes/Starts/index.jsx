@@ -58,8 +58,9 @@ const SemestersList = () => {
         modalityId: modality.idModeEval, 
         note: studentData.notes?.[modality.idModeEval]  ,  
       }))
-      .filter(note => note.note !== '' || note.note === 0); 
-  
+      .filter(note => note.note !== '' || note.note === 0);
+
+    console.log("Notes List:", notesList);
     console.log("Notes List:", notesList);
   
     try {
@@ -182,17 +183,16 @@ const SemestersList = () => {
   };
   
 
-// Handle note change for each modality
-const handleNoteChange = (modalityId, note) => {
-  setStudentData((prevData) => ({
-    ...prevData,
-    notes: {
-      ...prevData.notes,
-      [modalityId]: note,
-    },
-    
-  }));
-};
+  const handleNoteChange = (modalityId, note) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      notes: {
+        ...prevData.notes,
+        [modalityId]: note,
+      },
+
+    }));
+  };
 
   const fetchModalities = (elementId) => {
     
