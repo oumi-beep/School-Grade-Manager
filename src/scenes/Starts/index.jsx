@@ -70,6 +70,13 @@ const SemestersList = () => {
     }
   };
 
+  const updateStudentList = async () => {
+    if (currentElement && selectedFiliereId) {
+      await fetchStudents(currentElement);
+    }
+  };
+
+
   //
     const handleSaveNotes = async () => {
     const notesList = modalities
@@ -388,7 +395,7 @@ const SemestersList = () => {
   };
 
   //fetch studets
-  const fetchStudents = async (element) => {
+  const fetchStudents = async (element, elementId) => {
     // Save the selected element
     setCurrentElement(element);
     console.log(element);
@@ -417,7 +424,7 @@ const SemestersList = () => {
     setLoadingStudents(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}`
+        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${selectedElementId}`
       );
       setStudents(response.data);
     } catch (err) {
@@ -474,7 +481,7 @@ const SemestersList = () => {
             <ul>
               {elements.map((element) => (
                 <li key={element.idElement}>
-                  <button onClick={() => fetchStudents(element)}>
+                  <button onClick={() => fetchStudents(element, element.idElement)}>
                     <strong>{element.nomElement}</strong>
                   </button>
                   <p>Coefficient: {element.coefficient}</p>
