@@ -389,6 +389,7 @@ const SemestersList = () => {
   const fetchStudents = async (element, elementId) => {
     // Save the selected element
     setCurrentElement(element);
+
     if (!selectedSemester) {
       alert("Please select a semester.");
       return;
@@ -416,7 +417,7 @@ const SemestersList = () => {
       const response = await axios.get(
         `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${elementId}`
       );
-      setStudents(response.data);
+      setStudents(response.data); // Response will already include both general info and specific notes
     } catch (err) {
       console.error("Failed to fetch students:", err);
       setError("Failed to fetch students.");
