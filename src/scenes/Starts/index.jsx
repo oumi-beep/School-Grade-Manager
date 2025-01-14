@@ -39,6 +39,7 @@ const SemestersList = () => {
     absent: '',
     note: '',
   });
+  const [isElementValidated, setIsElementValidated] = useState(false);
 
   const [modalities, setModalities] = useState([]);
   const [loadingModalities, setLoadingModalities] = useState(false);
@@ -300,8 +301,11 @@ const SemestersList = () => {
       renderCell: (params) => (
         <div style={{ display: 'flex', gap: '10px' }}>
           <IconButton
-            style={{ color: 'blue' }}
+            style={{
+              color: isElementValidated ? 'gray' : 'blue'
+            }}
             onClick={() => handleOpenModal(params.row)}
+            disabled={isElementValidated}
           >
             <AddIcon />
           </IconButton>
@@ -380,7 +384,6 @@ const SemestersList = () => {
     setStudents([]); // Reset students
     setCurrentElement(null); // Reset current element
     setSelectedFiliereId(filiereId);
-
     try {
       const response = await axios.get(
         'http://localhost:8080/api/element/elements/findByProfessorFiliereSemester',
@@ -400,11 +403,35 @@ const SemestersList = () => {
       setLoadingElements(false); // End loading state
     }
   };
+  const [etat, setEtat] = useState(""); // État récupéré
 
+  const fetchEtatElement = async (elementId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/element/etat/${elementId}`
+      );
+      setEtat(response.data); // Met à jour l'état
+      setError(""); // Réinitialise les erreurs
+      return response.data; // Retourne l'état pour utilisation ultérieure
+    } catch (err) {
+      setError(
+        err.response?.data || "Erreur lors de la récupération de l'état."
+      );
+      setEtat(""); // Réinitialise l'état
+      return null; // Retourne null en cas d'erreur
+    }
+  };
   //fetch studets
   const fetchStudents = async (element, elementId) => {
     // Save the selected element
     setCurrentElement(element);
+    // Récupère l'état de l'élément
+    const elementEtat = await fetchEtatElement(elementId);
+
+    // Vérifie si l'état est "Validé"
+    const isValidated = elementEtat === "Validé";
+    setIsElementValidated(isValidated);
+
     if (!selectedSemester) {
       alert("Please select a semester.");
       return;
@@ -451,10 +478,38 @@ const SemestersList = () => {
   if (error) return <p>{error}</p>;
   const handleElementClick = async (element) => {
     try {
-      await fetchStudents(element, element.idElement); // Charger les étudiants
-      await fetchElementAverage(element.idElement);   // Charger la moyenne
+      await fetchStudents(element, element.idElement);
+      // Charger les étudiants
+      await fetchElementAverage(element.idElement);
+
     } catch (error) {
       console.error("Error handling element click:", error);
+    }
+  };
+
+  // Add new function to handle element validation
+  const handleValidateElement = async () => {
+    if (!currentElement) {
+      alert("Please select an element first");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/element/valider/${currentElement.idElement}`
+      );
+
+      if (response.status === 200) {
+        setIsElementValidated(true);
+        setCurrentElement({
+          ...currentElement,
+          etatElement: "Validé"
+        });
+        alert("Element has been validated successfully");
+      }
+    } catch (error) {
+      console.error("Error validating element:", error);
+      alert("Failed to validate element");
     }
   };
 
@@ -531,7 +586,22 @@ const SemestersList = () => {
           </div>
         )}
 
+        {currentElement && !isElementValidated && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleValidateElement}
+            style={{
+              marginBottom: '20px',
+              backgroundColor: '#4CAF50',
+              color: 'white'
+            }}
+          >
+            Valider l'élément
+          </Button>
+        )}
         <Box display="flex" justifyContent="center" alignItems="center" height="75vh">
+
           <Box flex={1} sx={{ maxWidth: '90%' }} height="100%">
 
             <DataGrid
@@ -544,12 +614,12 @@ const SemestersList = () => {
                 '& .MuiDataGrid-root': { border: 'none' },
                 '& .MuiDataGrid-cell': { border: 'none' },
                 '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: '#d8eaf4',
+                  backgroundColor: isElementValidated ? '#e8f5e9' : '#d8eaf4',
                   borderBottom: 'none',
                 },
                 '& .MuiDataGrid-footerContainer': {
                   borderTop: 'none',
-                  backgroundColor: '#d8eaf4',
+                  backgroundColor: isElementValidated ? '#e8f5e9' : '#d8eaf4',
                 },
                 '& .MuiDataGrid-virtualScroller': {
                   backgroundColor: colors.primary[400],
