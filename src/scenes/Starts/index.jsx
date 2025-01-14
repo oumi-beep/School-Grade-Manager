@@ -53,6 +53,22 @@ const SemestersList = () => {
   };
 
 
+  const [average, setAverage] = useState(null);
+  const fetchElementAverage = async (elementId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/element/average/${elementId}`);
+      setAverage(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching element average:", error);
+    }
+  };
+
+  const handleElementSelection = (element) => {
+    setCurrentElement(element);
+    fetchElementAverage(element.idElement); // Récupérer la moyenne
+  };
+
 
   const calculateElementNote = async (studentId, elementId, filiereId) => {
     try {
@@ -389,7 +405,6 @@ const SemestersList = () => {
   const fetchStudents = async (element, elementId) => {
     // Save the selected element
     setCurrentElement(element);
-
     if (!selectedSemester) {
       alert("Please select a semester.");
       return;
@@ -417,7 +432,7 @@ const SemestersList = () => {
       const response = await axios.get(
         `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${elementId}`
       );
-      setStudents(response.data); // Response will already include both general info and specific notes
+      setStudents(response.data);
     } catch (err) {
       console.error("Failed to fetch students:", err);
       setError("Failed to fetch students.");
@@ -434,6 +449,14 @@ const SemestersList = () => {
 
   if (loadingSemesters) return <p>Loading semesters...</p>;
   if (error) return <p>{error}</p>;
+  const handleElementClick = async (element) => {
+    try {
+      await fetchStudents(element, element.idElement); // Charger les étudiants
+      await fetchElementAverage(element.idElement);   // Charger la moyenne
+    } catch (error) {
+      console.error("Error handling element click:", error);
+    }
+  };
 
   return (
     <>
@@ -472,9 +495,10 @@ const SemestersList = () => {
             <ul>
               {elements.map((element) => (
                 <li key={element.idElement}>
-                  <button onClick={() => fetchStudents(element, element.idElement)}>
+                  <button onClick={() => handleElementClick(element)}>
                     <strong>{element.nomElement}</strong>
                   </button>
+
                   <p>Coefficient: {element.coefficient}</p>
                   <p>Module: {element.module.nomModule}</p>
                 </li>
@@ -486,8 +510,30 @@ const SemestersList = () => {
 
       <div className="student-container">
         <h2>Students for Selected Element</h2>
-        <Box display="flex" gap="20px" height="75vh">
-          <Box flex={1} sx={{ maxWidth: '100%' }}>
+        {/* Section pour afficher la moyenne */}
+        {average !== null && (
+          <div
+            style={{
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#e8f5e9', // Vert clair pour une ambiance apaisante
+              borderRadius: '8px',
+              border: '1px solid #c8e6c9', // Bordure légère pour mieux délimiter
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Ombre légère pour donner de la profondeur
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#2e7d32' }}> {/* Vert plus foncé pour le titre */}
+              Moyenne :{' '}
+              <span style={{ color: '#388e3c', fontWeight: 'bold' }}> {/* Vert équilibré pour la valeur */}
+                {average.toFixed(2)}
+              </span>
+            </h3>
+          </div>
+        )}
+
+        <Box display="flex" justifyContent="center" alignItems="center" height="75vh">
+          <Box flex={1} sx={{ maxWidth: '90%' }} height="100%">
+
             <DataGrid
               rows={students}
               columns={columns}
