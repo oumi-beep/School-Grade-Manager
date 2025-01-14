@@ -36,7 +36,18 @@ const SemestersList = () => {
   const [currentElement, setCurrentElement] = useState(null);
   const [modalities, setModalities] = useState([]);
   const [studentData, setStudentData] = useState(INITIAL_STATE);
-  
+  const [isElementValidated, setIsElementValidated] = useState(false);
+  const [average, setAverage] = useState(null);
+
+  const fetchElementAverage = async (elementId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/element/average/${elementId}`);
+      setAverage(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching element average:", error);
+    }
+  };
   // Loading States
   const [loading, setLoading] = useState({
     semesters: true,
@@ -108,6 +119,7 @@ const SemestersList = () => {
           method: 'PUT',
           data: notesList
         });
+
       } else {
         await apiCall('/modalite-notes/addnoteModalite', {
           method: 'POST',
@@ -123,6 +135,7 @@ const SemestersList = () => {
 
       await updateStudentList();
       alert('Notes saved and calculated successfully');
+      fetchElementAverage(currentElement.idElement)
       setOpenModal(false);
     } catch (error) {
       console.error('Error saving notes:', error);
@@ -137,37 +150,37 @@ const SemestersList = () => {
       const response = await axios.get(
         `http://localhost:8080/api/notes/getNotes/${studentId}/${elementId}`
       );
-  
+
       console.log("Raw API Response:", response.data);
-  
+
       if (response.data && typeof response.data === "object") {
         // Transform the data structure to match what the form expects
         const notes = {};
         const absences = {}; // Create an object to store the absence data
-  
+
         Object.entries(response.data).forEach(([modalityId, noteData]) => {
           // Convert modalityId to integer and store the note value
           notes[parseInt(modalityId)] = noteData.note;
-  
+
           // Also store the absence status for each modality
           absences[parseInt(modalityId)] = noteData.absent || false; // Default to false if not provided
         });
-  
+
         console.log("Processed Notes:", notes);
         console.log("Processed Absences:", absences);
-  
+
         // Update the studentData state
         setStudentData((prevData) => ({
           ...prevData,
           notes: notes,
-          absences: absences, 
+          absences: absences,
         }));
       }
     } catch (error) {
       console.error("Error fetching notes for student:", error);
     }
   };
-  
+
 
   // Handle note change
   const handleNoteChange = useCallback((modalityId, note) => {
@@ -191,9 +204,9 @@ const SemestersList = () => {
     if (!studentData.absences?.[modalityId]) {
       setStudentData((prevData) => ({
         ...prevData,
-        notes: { 
-          ...prevData.notes, 
-          [modalityId]: numericValue 
+        notes: {
+          ...prevData.notes,
+          [modalityId]: numericValue
         }
       }));
     }
@@ -216,7 +229,7 @@ const SemestersList = () => {
       },
       notes: {
         ...prevState.notes,
-        [modalityId]: isAbsent ? 0 : prevState.notes?.[modalityId], 
+        [modalityId]: isAbsent ? 0 : prevState.notes?.[modalityId],
       },
     }));
   }, []);
@@ -227,10 +240,10 @@ const SemestersList = () => {
       alert("Please select an element first");
       return;
     }
-  
+
     console.log("Opening modal for student:", student);
     console.log("Current element:", currentElement);
-  
+
     setStudentData({
       ...INITIAL_STATE,
       name: student.nomEtudiant,
@@ -238,25 +251,31 @@ const SemestersList = () => {
       surname: student.prenomEtudiant,
       cse: student.cneEtudiant,
     });
-  
+
     try {
       // Fetch modalities first
       await fetchModalities(currentElement.idElement);
-      
+
       // Then fetch notes
       console.log("Fetching notes for:", {
         studentId: student.idEtudiant,
         elementId: currentElement.idElement
       });
-      
+
       await fetchNotesForStudent(student.idEtudiant, currentElement.idElement);
-      
+
       console.log("StudentData after fetching:", studentData);
-      
+
       setOpenModal(true);
     } catch (error) {
       console.error("Error in handleOpenModal:", error);
     }
+  };
+
+  const colors = {
+    greenAccent: ['#28a745', '#4CAF50'],
+    primary: ['#1976d2', '#1565c0'],
+    gray: ['#616161', '#757575'],
   };
 
   // Fetch modalities
@@ -292,12 +311,15 @@ const SemestersList = () => {
       renderCell: (params) => (
         <div style={{ display: 'flex', gap: '10px' }}>
           <IconButton
-            style={{ color: 'blue' }}
+            style={{
+              color: isElementValidated ? 'gray' : 'blue'
+            }}
             onClick={() => handleOpenModal(params.row)}
+            disabled={isElementValidated}
           >
             <AddIcon />
           </IconButton>
-          
+
         </div>
       ),
     },
@@ -376,37 +398,73 @@ const SemestersList = () => {
       setLoading(prev => ({ ...prev, elements: false }));
     }
   };
+  const [etat, setEtat] = useState(""); // État récupéré
+
+  const fetchEtatElement = async (elementId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/element/etat/${elementId}`
+      );
+      setEtat(response.data); // Met à jour l'état
+      setError(""); // Réinitialise les erreurs
+      return response.data; // Retourne l'état pour utilisation ultérieure
+    } catch (err) {
+      setError(
+        err.response?.data || "Erreur lors de la récupération de l'état."
+      );
+      setEtat(""); // Réinitialise l'état
+      return null; // Retourne null en cas d'erreur
+    }
+  };
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
   // Fetch students
   const fetchStudents = async (element, elementId) => {
+    // Save the selected element
     setCurrentElement(element);
-    
-    if (!selectedSemester || !selectedFiliereId) {
-      alert("Please select both semester and filiere first");
+    // Récupère l'état de l'élément
+    const elementEtat = await fetchEtatElement(elementId);
+
+    // Vérifie si l'état est "Validé"
+    const isValidated = elementEtat === "Validé";
+    setIsElementValidated(isValidated);
+
+    if (!selectedSemester) {
+      alert("Please select a semester.");
       return;
     }
 
-    const niveau = ["S1", "S2"].includes(selectedSemester.name) ? "1ère année" :
-                  ["S3", "S4"].includes(selectedSemester.name) ? "2ème année" :
-                  selectedSemester.name === "S5" ? "3ème année" : null;
-
-    if (!niveau) {
-      alert("Invalid semester name");
+    if (!selectedFiliereId) {
+      alert("Please select a Filiere.");
       return;
     }
 
-    setLoading(prev => ({ ...prev, students: true }));
+    let niveau;
+    if (["S1", "S2"].includes(selectedSemester.name)) {
+      niveau = "1ère année";
+    } else if (["S3", "S4"].includes(selectedSemester.name)) {
+      niveau = "2ème année";
+    } else if (selectedSemester.name === "S5") {
+      niveau = "3ème année";
+    } else {
+      alert("Invalid semester name.");
+      return;
+    }
+
+    setLoadingStudents(true);
     try {
-      const response = await apiCall(
-        `/etudiants/StudentList/${selectedFiliereId}/${niveau}/${elementId}`
+      const response = await axios.get(
+        `http://localhost:8080/api/etudiants/StudentList/${selectedFiliereId}/${niveau}/${elementId}`
       );
-      setStudents(response);
-    } catch (error) {
-      console.error("Failed to fetch students:", error);
+      setStudents(response.data);
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+      setError("Failed to fetch students.");
     } finally {
-      setLoading(prev => ({ ...prev, students: false }));
+      setLoadingStudents(false);
     }
   };
+
 
   // Handle semester selection
   const handleSemesterSelection = (semester) => {
@@ -418,6 +476,43 @@ const SemestersList = () => {
   if (loading.semesters) {
     return <CircularProgress />;
   }
+
+  if (loading.semesters) return <p>Loading semesters...</p>;
+  if (error) return <p>{error}</p>;
+  const handleElementClick = async (element) => {
+    try {
+      await fetchStudents(element, element.idElement);
+      // Charger les étudiants
+      await fetchElementAverage(element.idElement);
+
+    } catch (error) {
+      console.error("Error handling element click:", error);
+    }
+  };
+  const handleValidateElement = async () => {
+    if (!currentElement) {
+      alert("Please select an element first");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/element/valider/${currentElement.idElement}`
+      );
+
+      if (response.status === 200) {
+        setIsElementValidated(true);
+        setCurrentElement({
+          ...currentElement,
+          etatElement: "Validé"
+        });
+        alert("Element has been validated successfully");
+      }
+    } catch (error) {
+      console.error("Error validating element:", error);
+      alert("Failed to validate element");
+    }
+  };
 
   return (
     <>
@@ -449,153 +544,188 @@ const SemestersList = () => {
           </div>
         )}
 
-        {loading.elements && <CircularProgress />}
-        {elements.length > 0 && !loading.elements && (
-          <div className="element-container">
-            <h2>Elements for Selected Filière</h2>
-            <ul>
-              {elements.map((element) => (
-                <li key={element.idElement}>
-                  <button onClick={() => fetchStudents(element, element.idElement)}>
-                    <strong>{element.nomElement}</strong>
-                  </button>
-                  <p>Coefficient: {element.coefficient}</p>
-                  <p>Module: {element.module.nomModule}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          {loading.elements && <p>Loading elements...</p>}
+          {elements.length > 0 && !loading.elements && (
+            <div className="element-container">
+              <h2>Elements for Selected Filière</h2>
+              <ul>
+                {elements.map((element) => (
+                  <li key={element.idElement}>
+                    <button onClick={() => handleElementClick(element)}>
+                      <strong>{element.nomElement}</strong>
+                    </button>
+
+                    <p>Coefficient: {element.coefficient}</p>
+                    <p>Module: {element.module.nomModule}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
       </div>
 
       <div className="student-container">
         <h2>Students for Selected Element</h2>
-        <Box display="flex" gap="20px" height="75vh">
-        <Box flex={1} sx={{ maxWidth: '100%' }}>
-          <DataGrid
-            rows={students}
-            columns={columns}
-            getRowId={(row) => row.idEtudiant}
-            components={{ Toolbar: GridToolbar }}
-            checkboxSelection
-            loading={loading.students}
-            sx={{
-              '& .MuiDataGrid-root': { border: 'none' },
-              '& .MuiDataGrid-cell': { border: 'none' },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#d8eaf4',
-                borderBottom: 'none',
-              },
-              '& .MuiDataGrid-footerContainer': {
-                borderTop: 'none',
-                backgroundColor: '#d8eaf4',
-              },
-              '& .MuiDataGrid-virtualScroller': {
-                backgroundColor: '#fff',
-              },
-              '& .MuiCheckbox-root': {
-                color: '#4caf50',
-              },
-              '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
-                color: '#616161',
-              },
+        {average !== null && (
+          <div
+            style={{
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#e8f5e9', // Vert clair pour une ambiance apaisante
+              borderRadius: '8px',
+              border: '1px solid #c8e6c9', // Bordure légère pour mieux délimiter
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Ombre légère pour donner de la profondeur
             }}
-          />
-        </Box>
-      </Box>
-    </div>
-
-    {/* Note Entry Modal */}
-    <Dialog 
-      open={openModal} 
-      onClose={() => setOpenModal(false)}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        Enter Notes for {studentData.name} {studentData.surname}
-      </DialogTitle>
-      <DialogContent>
-        {modalities.length > 0 ? (
-          modalities.map((modality) => (
-            <div key={modality.id} className="modality-input-container" style={{ marginBottom: '20px' }}>
-              <TextField
-                label={`Note for ${modality.nomMode}`}
-                type="number"
-                value={studentData.notes[modality.idModeEval] === 0 ? 0 : studentData.notes[modality.idModeEval] || ''}
-                onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
-                fullWidth
-                margin="normal"
-                inputProps={{
-                  min: 0,
-                  max: 20,
-                  step: 0.25,
-                  disabled: studentData.absences?.[modality.idModeEval]
-                }}
-                error={studentData.notes?.[modality.idModeEval] > 20 || studentData.notes?.[modality.idModeEval] < 0}
-                helperText={
-                  studentData.notes?.[modality.idModeEval] > 20 ? "Note cannot exceed 20" :
-                  studentData.notes?.[modality.idModeEval] < 0 ? "Note cannot be negative" : ""
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={studentData.absences?.[modality.idModeEval] ?? false} 
-                    onChange={(e) => handleAbsenceChange(modality.idModeEval, e.target.checked)} 
-                  />
-                }
-                label="Absent"
-                style={{ marginLeft: '10px' }}
-              />
-            </div>
-          ))
-        ) : (
-          <Box display="flex" justifyContent="center" p={3}>
-            <CircularProgress />
-          </Box>
+          >
+            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#2e7d32' }}> {/* Vert plus foncé pour le titre */}
+              Moyenne :{' '}
+              <span style={{ color: '#388e3c', fontWeight: 'bold' }}> {/* Vert équilibré pour la valeur */}
+                {average.toFixed(2)}
+              </span>
+            </h3>
+          </div>
         )}
-      </DialogContent>
+        {currentElement && !isElementValidated && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleValidateElement}
+            style={{
+              marginBottom: '20px',
+              backgroundColor: '#4CAF50',
+              color: 'white'
+            }}
+          >
+            Valider l'élément
+          </Button>
+        )}
+        <Box display="flex" justifyContent="center" alignItems="center" height="75vh">
 
-      {/* Confirmation Dialog */}
-      <Dialog 
-        open={confirmOpen} 
-        onClose={handleCancel}
+          <Box flex={1} sx={{ maxWidth: '90%' }} height="100%">
+
+            <DataGrid
+              rows={students}
+              columns={columns}
+              getRowId={(row) => row.idEtudiant}
+              components={{ Toolbar: GridToolbar }}
+              checkboxSelection
+              sx={{
+                '& .MuiDataGrid-root': { border: 'none' },
+                '& .MuiDataGrid-cell': { border: 'none' },
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: isElementValidated ? '#e8f5e9' : '#d8eaf4',
+                  borderBottom: 'none',
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none',
+                  backgroundColor: isElementValidated ? '#e8f5e9' : '#d8eaf4',
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  backgroundColor: colors.primary[400],
+                },
+                '& .MuiCheckbox-root': {
+                  color: `${colors.greenAccent[200]} !important`,
+                },
+                '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
+                  color: `${colors.gray[100]} !important`,
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      </div>
+
+      {/* Note Entry Modal */}
+      <Dialog
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        maxWidth="sm"
+        fullWidth
       >
-        <DialogTitle>Confirmation Required</DialogTitle>
+        <DialogTitle>
+          Enter Notes for {studentData.name} {studentData.surname}
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {pendingNote?.value === 0 
-              ? "Are you sure you want to assign a note of 0?"
-              : `Are you sure you want to assign a perfect score of ${pendingNote?.value}?`}
-          </DialogContentText>
+          {modalities.length > 0 ? (
+            modalities.map((modality) => (
+              <div key={modality.id} className="modality-input-container" style={{ marginBottom: '20px' }}>
+                <TextField
+                  label={`Note for ${modality.nomMode}`}
+                  type="number"
+                  value={studentData.notes[modality.idModeEval] === 0 ? 0 : studentData.notes[modality.idModeEval] || ''}
+                  onChange={(e) => handleNoteInput(modality.idModeEval, e.target.value)}
+                  fullWidth
+                  margin="normal"
+                  inputProps={{
+                    min: 0,
+                    max: 20,
+                    step: 0.25,
+                    disabled: studentData.absences?.[modality.idModeEval]
+                  }}
+                  error={studentData.notes?.[modality.idModeEval] > 20 || studentData.notes?.[modality.idModeEval] < 0}
+                  helperText={
+                    studentData.notes?.[modality.idModeEval] > 20 ? "Note cannot exceed 20" :
+                      studentData.notes?.[modality.idModeEval] < 0 ? "Note cannot be negative" : ""
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={studentData.absences?.[modality.idModeEval] ?? false}
+                      onChange={(e) => handleAbsenceChange(modality.idModeEval, e.target.checked)}
+                    />
+                  }
+                  label="Absent"
+                  style={{ marginLeft: '10px' }}
+                />
+              </div>
+            ))
+          ) : (
+            <Box display="flex" justifyContent="center" p={3}>
+              <CircularProgress />
+            </Box>
+          )}
         </DialogContent>
+
+        {/* Confirmation Dialog */}
+        <Dialog
+          open={confirmOpen}
+          onClose={handleCancel}
+        >
+          <DialogTitle>Confirmation Required</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {pendingNote?.value === 0
+                ? "Are you sure you want to assign a note of 0?"
+                : `Are you sure you want to assign a perfect score of ${pendingNote?.value}?`}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancel} color="secondary">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirm} color="primary" variant="contained">
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <DialogActions>
-          <Button onClick={handleCancel} color="secondary">
+          <Button onClick={() => setOpenModal(false)} color="secondary">
             Cancel
           </Button>
-          <Button onClick={handleConfirm} color="primary" variant="contained">
-            Confirm
+          <Button
+            onClick={handleSaveNotes}
+            color="primary"
+            variant="contained"
+            disabled={loading.modalities}
+          >
+            Save Notes
           </Button>
         </DialogActions>
       </Dialog>
-
-      <DialogActions>
-        <Button onClick={() => setOpenModal(false)} color="secondary">
-          Cancel
-        </Button>
-        <Button 
-          onClick={handleSaveNotes} 
-          color="primary" 
-          variant="contained"
-          disabled={loading.modalities}
-        >
-          Save Notes
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </>
-);
+    </>
+  );
 };
 
 export default SemestersList;
