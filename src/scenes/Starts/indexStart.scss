@@ -48,7 +48,9 @@ $transition-speed: 0.3s;
         font-size: 16px;
         cursor: pointer;
         transition: background-color $transition-speed ease-in-out;
-
+        &.active {
+          background-color: $hover-color; // Define $active-color in your SCSS variables
+        }
         &:hover {
           background-color: $hover-color;
         }

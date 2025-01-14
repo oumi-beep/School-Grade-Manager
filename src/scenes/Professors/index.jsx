@@ -489,13 +489,6 @@ const handleSubmitt = (newSelectedElements) => {
         });
     });
 };
-
- 
-
-
-  
-  
-
   
   return (
     <Box m="20px">
