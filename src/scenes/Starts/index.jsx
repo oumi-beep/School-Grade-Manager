@@ -543,24 +543,24 @@ const SemestersList = () => {
           </div>
         )}
 
-          {loading.elements && <p>Loading elements...</p>}
-          {elements.length > 0 && !loading.elements && (
-            <div className="element-container">
-              <h2>Elements for Selected Filière</h2>
-              <ul>
-                {elements.map((element) => (
-                  <li key={element.idElement}>
-                    <button onClick={() => handleElementClick(element)}>
-                      <strong>{element.nomElement}</strong>
-                    </button>
+        {loading.elements && <p>Loading elements...</p>}
+        {elements.length > 0 && !loading.elements && (
+          <div className="element-container">
+            <h2>Elements for Selected Filière</h2>
+            <ul>
+              {elements.map((element) => (
+                <li key={element.idElement}>
+                  <button onClick={() => handleElementClick(element)}>
+                    <strong>{element.nomElement}</strong>
+                  </button>
 
-                    <p>Coefficient: {element.coefficient}</p>
-                    <p>Module: {element.module.nomModule}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                  <p>Coefficient: {element.coefficient}</p>
+                  <p>Module: {element.module.nomModule}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="student-container">
