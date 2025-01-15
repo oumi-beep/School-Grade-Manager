@@ -351,7 +351,6 @@ const SemestersList = () => {
         setLoading(prev => ({ ...prev, semesters: false }));
       }
     };
-
     fetchInitialSemesters();
   }, [professorId]);
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import loginImage from "../../assets/images/login.jpg";
+import loginImage from "../../assets/images/logo.jpg";
 
 import "../../assets/homePage.css";
 
@@ -33,10 +33,7 @@ const HomePage = () => {
                 </nav>
 
                 <article className="right-section">
-                    <aside className="theme-toggle" onClick={toggleTheme}>
-                        <div className="icon moon">🌙</div>
-                        <div className="icon sun">☀️</div>
-                    </aside>
+                    
 
                     <div className="button">
                         <a href="#" onClick={handleLoginClick}>

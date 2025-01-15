@@ -257,8 +257,8 @@ const ModesEvaluation = () => {
 
                 </Box>
             </Box>
-            <Box display="flex" justifyContent="center" alignItems="center" height="75vh">
-                <Box flex={1} sx={{ maxWidth: "90%" }}>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                <Box flex={1} sx={{ maxWidth: "60%" }}>
                     <DataGrid
                         rows={modesList}
                         columns={columnsModes}

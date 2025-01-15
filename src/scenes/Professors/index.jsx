@@ -131,7 +131,7 @@ const Professors = () => {
         }),
       });
     } else {
-      response = await fetch('http://localhost:8080/api/professors/add', {
+      response = await fetch('http://localhost:8080/api/professors/addProf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

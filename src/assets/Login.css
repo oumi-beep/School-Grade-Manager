@@ -25,7 +25,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2A2637;
+  background-color: #7a92aa;
   padding: 15px;
   height: 80%;
   width: 75%;
@@ -38,7 +38,7 @@
   max-width: 400px;
   height: 100%;
   padding: 15px;
-  background: #2A2637;
+  background: #7a92aa;
   border-radius: 15px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   transition: transform 0.3s ease-in-out;
@@ -75,7 +75,7 @@ label {
 }
 
  
-input,
+.input,
 select {
   width: 92%;
   background-color: transparent;
@@ -94,7 +94,7 @@ select:focus {
 }
 
 .login-button {
-  background-color: #705eb9;
+  background-color: #87b3df;
   color: white;
   border: none;
   padding: 12px;
@@ -105,12 +105,12 @@ select:focus {
 }
 
 .login-button:hover {
-  background-color: #ab98f6;
+  background-color: #8e969f;
   transform: translateY(-2px);
 }
 
 .login-button:active {
-  background-color: #ab98f6;
+  background-color: #7a92aa;
   transform: translateY(0);
 }
 
@@ -124,7 +124,7 @@ select:focus {
 
 .switch-link {
   text-align: center;
-  color: #635E76;
+  color: black;
   cursor: pointer;
   text-decoration: underline;
   font-size: 0.9em;
@@ -132,7 +132,7 @@ select:focus {
 }
 
 .switch-link:hover {
-  color: #635E76;
+  color: black;
 }
 
 .forgot-password {
@@ -141,7 +141,7 @@ select:focus {
 }
 
 .forgot-password a {
-  color: #705eb9;
+  color: black;
   text-decoration: none;
   font-size: 0.9em;
 }

@@ -166,29 +166,13 @@ const AddCompteUtilisateur = () => {
             field: "codeProf",
             headerName: "Professor Code",
             flex: 1,
-            renderCell: (params) => {
-                return params.row.role === "Professor" ? (
-                    params.row.codeProf
-                ) : (
-                    <Box sx={{ fontStyle: "italic", color: "gray" }}>
-                        Not applicable
-                    </Box>
-                );
-            },
+          
         },
         {
             field: "specialite",
             headerName: "Specialty",
             flex: 1,
-            renderCell: (params) => {
-                return params.row.role === "Professor" ? (
-                    params.row.specialite
-                ) : (
-                    <Box sx={{ fontStyle: "italic", color: "gray" }}>
-                        Not applicable
-                    </Box>
-                );
-            },
+          
         },
         { field: "role", headerName: "Role", flex: 1 },
         {

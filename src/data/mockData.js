@@ -268,54 +268,54 @@ export const mockDataInvoices = [
 
 export const mockAccordionData = [
   {
-    question: "How do I create a new user?",
+    question: "Comment ajouter un professeur dans le système ?",
     details:
-      "To create a new user, navigate to the Users section in the admin dashboard. Click on the 'Add User' button and fill in the required information such as username, email, and password. Then, click on the 'Save' button to create the user.",
+      "Pour ajouter un professeur, l'administrateur doit accéder à la section 'Gestion des professeurs'. Cliquez sur 'Ajouter un professeur', puis saisissez les informations telles que le nom, le prénom, la spécialité et le code. Enfin, enregistrez les données.",
   },
   {
-    question: "How can I manage permissions for users?",
+    question: "Comment gérer les filières et les modules associés ?",
     details:
-      "To manage permissions for users, go to the Permissions section in the admin dashboard. Here, you can assign or revoke specific permissions for each user by selecting the user and adjusting their permissions accordingly.",
+      "L'administrateur peut gérer les filières dans la section 'Gestion des filières'. Pour chaque filière, vous pouvez ajouter ou modifier des modules en spécifiant leur code, leur nom, et leur semestre d'appartenance.",
   },
   {
-    question: "What is the process for adding a new product?",
+    question: "Comment attribuer des éléments de module à un professeur ?",
     details:
-      "To add a new product, navigate to the Products section in the admin dashboard. Click on the 'Add Product' button and fill in the details such as product name, description, price, and images. Finally, click on the 'Save' button to add the product.",
+      "Dans la section 'Attribution des éléments', sélectionnez un professeur, puis choisissez les éléments de module qui lui sont affectés. Vous pouvez également ajuster les coefficients associés aux modalités d'évaluation.",
   },
   {
-    question: "How do I update existing user information?",
+    question: "Quelles sont les modalités d'évaluation disponibles ?",
     details:
-      "To update existing user information, find the user in the Users section of the admin dashboard. Click on the user to view their details, then click on the 'Edit' button. Update the necessary information and click on the 'Save' button to apply the changes.",
+      "Les modalités d'évaluation disponibles sont : CC, TP, Projet et Présentation. Vous pouvez définir un ou plusieurs modes pour un élément de module, avec des coefficients spécifiques (par exemple, CC : 30%, TP : 20%, Projet : 50%).",
   },
   {
-    question: "What are the steps to delete a product?",
+    question: "Comment le professeur peut-il saisir les notes des étudiants ?",
     details:
-      "To delete a product, navigate to the Products section in the admin dashboard. Find the product you want to delete and click on the 'Delete' button. Confirm the action when prompted, and the product will be permanently removed from the system.",
+      "Le professeur doit accéder à la section 'Saisie des notes'. Le système affiche automatiquement la liste des étudiants associés à l'élément de module. Le professeur peut alors entrer les notes pour chaque étudiant.",
   },
   {
-    question: "How can I view sales reports?",
+    question: "Quelles validations sont effectuées lors de la saisie des notes ?",
     details:
-      "To view sales reports, go to the Reports section in the admin dashboard. Here, you can generate various reports such as sales by day, month, or year, top-selling products, and revenue trends.",
+      "Avant de valider un élément, l'application vérifie que toutes les notes sont saisies, qu'elles sont comprises entre 0 et 20, et qu'un étudiant absent est marqué comme tel. Si des notes de 0 ou 20 sont présentes, une confirmation est demandée.",
   },
   {
-    question: "What options are available for managing customer orders?",
+    question: "Un professeur peut-il modifier des notes après validation ?",
     details:
-      "To manage customer orders, navigate to the Orders section in the admin dashboard. Here, you can view all orders, process pending orders, update order status, and manage order fulfillment and shipping details.",
+      "Non, une fois qu'un élément est validé, ses notes ne sont plus modifiables. Cependant, avant validation, le professeur peut enregistrer les notes en brouillon et les modifier à tout moment.",
   },
   {
-    question: "How do I customize the appearance of the dashboard?",
+    question: "Comment exporter les notes dans un fichier ?",
     details:
-      "To customize the appearance of the dashboard, go to the Settings section in the admin dashboard. Here, you can adjust various settings such as theme colors, layout options, and dashboard widgets.",
+      "Après validation d'un élément de module, le professeur peut exporter les notes au format Excel ou PDF en cliquant sur le bouton 'Exporter' dans la section correspondante.",
   },
   {
-    question: "What security measures are in place to protect user data?",
+    question: "Comment calculer la moyenne d’un module ou d’un élément ?",
     details:
-      "We take security seriously and have implemented various measures to protect user data. These include encryption of sensitive information, regular security audits, and compliance with industry standards and regulations.",
+      "L'application calcule automatiquement la moyenne d'un élément en tenant compte des coefficients des modalités d'évaluation. La moyenne d'un module est calculée lorsque tous ses éléments sont validés.",
   },
   {
-    question: "How can I contact support for assistance?",
+    question: "Quelles technologies sont utilisées dans cette application ?",
     details:
-      "For assistance or support inquiries, please contact our customer support team via email at support@example.com or by phone at 1-800-123-4567. Our support team is available to assist you with any questions or issues you may have.",
+      "Cette application est développée avec Spring pour le backend, JSP ou JSF pour le frontend, React ou Angular pour les technologies JS, et Bootstrap pour le design CSS.",
   },
 ];
 

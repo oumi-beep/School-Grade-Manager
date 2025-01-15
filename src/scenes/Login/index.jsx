@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import '../../assets/Login.css';
 import { useNavigate } from "react-router-dom";
-import loginImage from "../../assets/images/login.jpg";
+import loginImage from "../../assets/images/logo.jpg";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -74,13 +74,14 @@ const Login = () => {
             <div className="form-groupp">
               <label htmlFor="email">Email</label>
               <input
+              className="input"
                   type="email"
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   style={{
-                    color: password.length > 0 ? "#705eb9" : "black",  
+                    color: password.length > 0 ? "white" : "black",  
                   }}
                   required
                 />
@@ -89,13 +90,14 @@ const Login = () => {
             <div className="form-groupp">
               <label htmlFor="password">Password</label>
               <input
+              className="input"
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 style={{
-                  color: password.length > 0 ? "#705eb9" : "black",  
+                  color: password.length > 0 ? "white" : "black",  
                 }}
                 required
               />

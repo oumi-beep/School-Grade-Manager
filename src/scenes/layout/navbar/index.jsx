@@ -18,7 +18,7 @@ import {
   PersonOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
-import loginImage from "../../../assets/images/login.jpg";
+import loginImage from "../../../assets/images/logo.jpg";
 import { ToggledContext } from "../../../App";
 
 const Navbar = () => {

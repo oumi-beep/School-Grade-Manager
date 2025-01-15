@@ -6,6 +6,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+
 import {
   Header,
   StatBox,
@@ -192,21 +193,7 @@ function Dashboard() {
         </Box>
 
 
-        {/* Geography Chart */}
-        <Box
-          gridColumn={isXlDevices ? "span 4" : "span 3"}
-          gridRow="span 2"
-          bgcolor="#eef5f9"
-          borderRadius="15px"
-          padding="30px"
-        >
-          <Typography variant="h5" fontWeight="600" mb="15px">
-            Student Distribution in Morocco
-          </Typography>
-          <Box display="flex" alignItems="center" justifyContent="center" height="200px">
-            <GeographyChart isDashboard={true} data={studentDataMorocco} />
-          </Box>
-        </Box>
+        
 
       </Box>
     </Box>
